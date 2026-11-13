@@ -1,0 +1,5 @@
+# Finales de línea LF en el repo y en disco, en cualquier sistema (herdr reescribe
+# twice.json con CRLF en Windows; así al copiarlo de vuelta no sale entero como cambiado).
+* text=auto eol=lf
+*.ttf binary
+*.png binary

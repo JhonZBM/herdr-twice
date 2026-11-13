@@ -1,16 +1,19 @@
 #!/usr/bin/env node
-// Instala la parte de herdr de este repo: mods por junction, temas y layout por copia,
+// Instala herdr-twice desde donde esté clonado: mods por junction, temas y layout por copia,
 // atajos en keys.json, colores de agentes y el gitignore global de worktrees.
+// Opcional: --galeria (regla @imagenN en ~/.claude/CLAUDE.md) y --statusline (la de Claude Code).
 // Se puede repetir: solo cambia lo que falta y nunca pisa algo distinto sin --forzar.
-// Uso: node ~/.claude/herdr/instalar.js [--forzar]
+// Uso, dentro del clon: node instalar.js [--forzar] [--galeria] [--statusline]
 'use strict';
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const forzar = process.argv.includes('--forzar');
-const repo = __dirname; // ~/.claude/herdr
+const opcion = (o) => process.argv.includes(o);
+const forzar = opcion('--forzar');
+const repo = __dirname;
+const claude = path.join(os.homedir(), '.claude');
 const home = process.env.HERDR_APP_HOME || path.join(os.homedir(), '.config', 'herdr-app');
 
 const ATAJOS = {
@@ -22,6 +25,8 @@ const ATAJOS = {
 };
 const COLORES = { working: '#d77757', blocked: '#e66464', done: '#78c88c' };
 const IGNORE_GLOBAL = '**/.claude/worktrees/';
+const REGLA_GALERIA = '- Si el usuario menciona `@imagenN` (p. ej. `@imagen3`), lee `~/.config/herdr-app/galeria/imagenN.png` con Read (si se soltó otro formato, `imagenN.jpg`, `.gif`…): son las imágenes de la galería de herdr.';
+const STATUSLINE = 'node ~/.claude/statusline/statusline.js';
 
 let avisos = 0;
 const ok = (m) => console.log('  ✓ ' + m);
@@ -41,18 +46,19 @@ if (!fs.existsSync(home)) {
   process.exit(1);
 }
 
+// destino → origen (junction en Windows): se edita en el repo y se ve en su sitio.
+function enlazar(origen, destino, nombre) {
+  let actual = null;
+  try { actual = fs.realpathSync(destino); } catch { /* no existe */ }
+  if (actual && path.resolve(actual).toLowerCase() === fs.realpathSync(origen).toLowerCase()) ok(nombre);
+  else if (actual) aviso(`${nombre}: ya existe ${destino} y no apunta al repo; muévelo y repite`);
+  else { fs.symlinkSync(origen, destino, 'junction'); hecho(nombre); }
+}
+
 console.log('Mods (junction):');
 fs.mkdirSync(path.join(home, 'mods'), { recursive: true });
 const mods = fs.readdirSync(path.join(repo, 'mods'));
-for (const mod of mods) {
-  const origen = path.join(repo, 'mods', mod);
-  const destino = path.join(home, 'mods', mod);
-  let actual = null;
-  try { actual = fs.realpathSync(destino); } catch { /* no existe */ }
-  if (actual && path.resolve(actual).toLowerCase() === fs.realpathSync(origen).toLowerCase()) ok(mod);
-  else if (actual) aviso(`${mod}: ya existe ${destino} y no apunta al repo; bórralo y repite`);
-  else { fs.symlinkSync(origen, destino, 'junction'); hecho(mod); }
-}
+for (const mod of mods) enlazar(path.join(repo, 'mods', mod), path.join(home, 'mods', mod), mod);
 
 for (const [carpeta, titulo] of [['themes', 'Temas'], ['layouts', 'Layouts']]) {
   console.log(`${titulo} (copia):`);
@@ -100,14 +106,38 @@ else {
   hecho(`${IGNORE_GLOBAL} en ${rutaIgnore}`);
 }
 
+if (opcion('--galeria')) {
+  console.log('Claude Code (regla de la galería):');
+  const rutaClaude = path.join(claude, 'CLAUDE.md');
+  const texto = fs.existsSync(rutaClaude) ? leer(rutaClaude) : '';
+  if (texto.includes('herdr-app/galeria/imagenN')) ok('@imagenN en CLAUDE.md');
+  else {
+    fs.mkdirSync(claude, { recursive: true });
+    fs.appendFileSync(rutaClaude, (texto && !texto.endsWith('\n') ? '\n' : '') + REGLA_GALERIA + '\n');
+    hecho('@imagenN en CLAUDE.md');
+  }
+}
+
+if (opcion('--statusline')) {
+  console.log('Claude Code (statusline):');
+  fs.mkdirSync(claude, { recursive: true });
+  enlazar(path.join(repo, 'statusline'), path.join(claude, 'statusline'), 'statusline');
+  const rutaSettings = path.join(claude, 'settings.json');
+  const settings = leerJson(rutaSettings, {});
+  const actual = settings.statusLine?.command;
+  if (actual === STATUSLINE) ok('statusLine');
+  else if (actual && !forzar) aviso(`ya hay otra statusLine («${actual}»); --forzar la cambia`);
+  else { settings.statusLine = { type: 'command', command: STATUSLINE }; escribirJson(rutaSettings, settings); hecho('statusLine'); }
+}
+
 console.log('herdr-app check:');
 const herdr = (args) => execFileSync('herdr-app', args, { encoding: 'utf8', stdio: 'pipe', shell: process.platform === 'win32' });
 for (const mod of mods) {
   try { herdr(['check', path.join(home, 'mods', mod)]); ok(mod); }
   catch (e) { aviso(`${mod}: ${(e.stdout || e.stderr || e.message).trim().split('\n').pop()}`); }
 }
-try { herdr(['do', 'layout.switch', '--name', 'jonz']); ok('layout jonz activo'); }
-catch { console.log('  · herdr no está abierto: el layout se elige con Ctrl+Shift+L o «herdr-app do layout.switch --name jonz»'); }
+try { herdr(['do', 'layout.switch', '--name', 'twice']); ok('layout twice activo'); }
+catch { console.log('  · herdr no está abierto: el layout se elige con Ctrl+Shift+L o «herdr-app do layout.switch --name twice»'); }
 
 console.log(avisos ? `\nListo, con ${avisos} aviso(s) arriba.` : '\nListo.');
 console.log('La fuente pixel de twice-nine se carga al reiniciar herdr.');

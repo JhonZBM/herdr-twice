@@ -1,4 +1,4 @@
-// Clon de "spaces" (herdr 0.1.15) para el layout jonz. Cambios propios:
+// Clon de "spaces" (herdr 0.1.15) para el layout twice. Cambios propios:
 //   - avatar: la mascota de twice-nine del agente del espacio (dormida, trabajando...);
 //     sin mascota, el icono de su programa (Claude, Codex...); sin agente, la letra;
 //   - nombre sin el adorno inicial (el ✻ de nombre-agente) y entero en el tooltip;
@@ -481,7 +481,7 @@ export default class Spaces extends View {
   // Altura a la medida de las filas (hasta MAX_FILAS); solo cuando cambia.
   ajustarAltura(cx, collapsed) {
     const nodo = find(layout(), BLOQUE);
-    if (collapsed || nodo?.content?.mod !== "spaces-jonz" || this.resizing) return;
+    if (collapsed || nodo?.content?.mod !== "spaces-twice" || this.resizing) return;
     const filas = this.ordered();
     const alto = filas.slice(0, MAX_FILAS).reduce((n, r) => n + rowHeight(r), 0);
     const px = CABECERA + Math.max(alto, 30) + PIE + 2;

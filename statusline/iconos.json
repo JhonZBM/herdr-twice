@@ -1,0 +1,39 @@
+{
+  "espacio": 4,
+  "esfuerzo": {
+    "low": { "icono": "✧", "color": "#d77757", "nombre": "bajo" },
+    "medium": { "icono": "✦", "color": "#d77757", "nombre": "medio" },
+    "high": { "icono": "✷", "color": "#d77757", "nombre": "alto" },
+    "xhigh": { "icono": "✸", "color": "#d77757", "nombre": "xalto" },
+    "max": { "icono": "✹", "color": "#d77757", "nombre": "máximo", "etiqueta": true }
+  },
+  "carpeta": "▸",
+  "rama": {
+    "limpia": "✓",
+    "color_limpia": "#78c88c",
+    "cambios": "·",
+    "texto_cambio": "cambio",
+    "texto_cambios": "cambios",
+    "subir": "⇡",
+    "bajar": "⇣"
+  },
+  "limite": {
+    "icono": "◷",
+    "ventanas": {
+      "five_hour": { "nombre": "5h", "umbrales": [50, 80], "reinicio_siempre": false },
+      "seven_day": { "nombre": "7d", "umbrales": [70, 90], "reinicio_siempre": true }
+    },
+    "reinicio": "↻"
+  },
+  "barra": {
+    "lleno": "▰",
+    "vacio": "▱",
+    "largo": 10,
+    "colores": {
+      "bajo": "#78c88c",
+      "medio": "#e6be5a",
+      "alto": "#e66464"
+    },
+    "limites": [50, 80]
+  }
+}

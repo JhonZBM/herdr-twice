@@ -1,0 +1,3 @@
+# Lo que herdr genera en cada mod (gpui-kit.d.ts pesa ~800 KB).
+gpui-kit.d.ts
+jsconfig.json
