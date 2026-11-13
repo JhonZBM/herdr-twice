@@ -1,5 +1,9 @@
 # Plan: layout «jonz» para herdr con galería de imágenes @imagenN
 
+> Plan original, se conserva como historia. Lo vigente está en el README y en `docs/decisiones.md`.
+> Cambió después: el clic pega `@imagenN ` (no la ruta absoluta), `jonz.json` va por **copia** (herdr rompe el
+> hardlink) y no se hicieron `preview.png` ni `RECIPE.md`.
+
 ## Contexto
 El usuario usa Claude Code dentro de **herdr-app** (herdr-app 0.1.15, layout `main`). Quiere acercarlo a Claude Desktop: pegar imágenes y referirse a ellas como
 `@imagen1`, `@imagen2`…, versionarlo en su repo `JhonZBM/Herdr-jonz` (raíz = `~/.claude`) y
