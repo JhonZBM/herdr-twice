@@ -13,6 +13,7 @@ status, plus an image gallery for Claude Code and a matching Claude Code status 
 - **galeria**: `Ctrl+Shift+V` saves a screenshot as `@imagenN`; write `@imagen3` in Claude Code to use it.
 - **nombre-agente**: unnamed spaces take their agent's title; `Ctrl+Shift+M` opens Claude in a folder.
 - **statusline**: model, effort, branch, context and usage limits in one line.
+- **Cursor CLI**: a tiny launcher and hooks so Cursor agents get a mascot too.
 - Themes `apricot-neon` (dark) and `apricot-cream` (light).
 
 ## Install
@@ -27,7 +28,7 @@ it copies without overwriting and asks before replacing a key you already use.
 ```sh
 git clone https://github.com/JhonZBM/herdr-twice
 cd herdr-twice
-node instalar.js --galeria --statusline
+node instalar.js --galeria --statusline --cursor
 ```
 
 Clone it wherever you like: nothing depends on its location. The script can be run again: it only adds
@@ -35,6 +36,7 @@ what's missing and warns (without overwriting) when something differs; `--forzar
 
 - `--galeria` adds the `@imagenN` rule to `~/.claude/CLAUDE.md`.
 - `--statusline` links `~/.claude/statusline` to the clone and sets `statusLine` in `~/.claude/settings.json`.
+- `--cursor` adds the hooks to `~/.cursor/hooks.json` and a **Cursor (TWICE)** entry to herdr's `+` menu.
 
 Restart herdr to load the pixel font. To update: `git pull`, then `node instalar.js` again (themes and
 layout are copies).
@@ -61,7 +63,9 @@ Icons, colors, thresholds and spacing live in `statusline/iconos.json` (no code 
 ## Notes
 
 - Paste in the gallery is Windows only (PowerShell); dropping files on it works everywhere.
-- Mascots follow agents that report their status to herdr (Claude Code, Codex…). Cursor CLI doesn't.
+- Mascots follow agents that report their status to herdr (Claude Code, Codex…). Cursor CLI doesn't on its own: open it
+  from **Cursor (TWICE)** in the `+` menu (or `node cursor/cursor-twice.js`). Its hooks run outside the terminal, so they
+  tell that launcher, which reports working/waiting to herdr. Cursor has no hook for permission prompts, so "needs you" isn't shown.
 - To see a change made to a mod: `herdr-app do layout.switch --name main`, then `--name twice`.
 - Rebuild it from scratch: [RECIPE.md](RECIPE.md).
 

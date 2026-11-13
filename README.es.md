@@ -13,6 +13,7 @@ su estado, más una galería de imágenes para Claude Code y una statusline de C
 - **galeria**: `Ctrl+Shift+V` guarda una captura como `@imagenN`; escribe `@imagen3` en Claude Code para usarla.
 - **nombre-agente**: los espacios sin nombre toman el título de su agente; `Ctrl+Shift+M` abre Claude en una carpeta.
 - **statusline**: modelo, esfuerzo, rama, contexto y límites de uso en una línea.
+- **Cursor CLI**: un lanzador mínimo y hooks para que los agentes de Cursor también tengan mascota.
 - Temas `apricot-neon` (oscuro) y `apricot-cream` (claro).
 
 ## Instalar
@@ -27,7 +28,7 @@ de herdr: copia sin pisar y pregunta antes de cambiar un atajo que ya uses.
 ```sh
 git clone https://github.com/JhonZBM/herdr-twice
 cd herdr-twice
-node instalar.js --galeria --statusline
+node instalar.js --galeria --statusline --cursor
 ```
 
 Clónalo donde quieras: nada depende de su ubicación. Se puede repetir: solo añade lo que falta y avisa (sin
@@ -35,6 +36,7 @@ pisar) si algo es distinto; `--forzar` lo pisa.
 
 - `--galeria` añade la regla de `@imagenN` a `~/.claude/CLAUDE.md`.
 - `--statusline` enlaza `~/.claude/statusline` al clon y pone `statusLine` en `~/.claude/settings.json`.
+- `--cursor` añade los hooks a `~/.cursor/hooks.json` y una entrada **Cursor (TWICE)** al menú `+` de herdr.
 
 Reinicia herdr para cargar la fuente pixel. Para actualizar: `git pull` y otra vez `node instalar.js` (temas
 y layout son copias).
@@ -65,7 +67,10 @@ Opus 5.5  ✦ medio    ▸ repo    main  ·  3 cambios    ⇡ 1    ▰▰▰▰�
 ## Notas
 
 - Pegar en la galería es solo Windows (PowerShell); soltar archivos funciona en todos.
-- Las mascotas siguen a los agentes que informan su estado a herdr (Claude Code, Codex…). Cursor CLI no.
+- Las mascotas siguen a los agentes que informan su estado a herdr (Claude Code, Codex…). Cursor CLI no lo hace solo:
+  ábrelo desde **Cursor (TWICE)** en el menú `+` (o `node cursor/cursor-twice.js`). Sus hooks corren fuera del terminal, así
+  que avisan a ese lanzador, que le pasa a herdr «trabajando» / «en espera». Cursor no tiene hook para cuando pide permiso,
+  así que «te necesita» no sale.
 - Para ver un cambio en un mod: `herdr-app do layout.switch --name main` y luego `--name twice`.
 - Para construirlo desde cero: [RECIPE.md](RECIPE.md).
 

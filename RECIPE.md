@@ -73,8 +73,11 @@ Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silksc
 - Claude Code doesn't know `@imagenN` on its own: add this line to `~/.claude/CLAUDE.md`: "If the user
   mentions `@imagenN`, read `~/.config/herdr-app/galeria/imagenN.png` with Read". `instalar.js --galeria`
   does it.
-- Mascots only follow agents that report a status to herdr (Claude Code, Codex…). Cursor CLI doesn't, so
-  it shows its icon but no mascot.
+- Mascots only follow agents that report a status to herdr (OSC 7501: `ESC ] 7501 ; state=working:app=cursor ESC `).
+  Claude Code does it itself. Cursor CLI doesn't, and its hooks run in a hidden console of their own, so writing the
+  sequence from a hook never reaches the terminal: `cursor/cursor-twice.js` launches Cursor, listens on a local pipe
+  and writes the sequence itself; `cursor/estado.js` (hooks `sessionStart`/`stop` → idle, `beforeSubmitPrompt` →
+  working) sends the state there. No hook fires on permission prompts, so Cursor never shows "needs you".
 - herdr doesn't notice edits made through a junction: to see a change in a mod, switch to `main` and back.
 - `herdr-app check` doesn't run async code: a failure inside `cx.spawn` passes the check.
 - Sprites are original pixel art; no logos or official images.

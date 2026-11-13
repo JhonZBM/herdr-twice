@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Instala herdr-twice desde donde esté clonado: mods por junction, temas y layout por copia,
 // atajos en keys.json, colores de agentes y el gitignore global de worktrees.
-// Opcional: --galeria (regla @imagenN en ~/.claude/CLAUDE.md) y --statusline (la de Claude Code).
+// Opcional: --galeria (regla @imagenN en ~/.claude/CLAUDE.md), --statusline (la de Claude Code) y
+// --cursor (hooks de Cursor CLI para que también tenga mascota).
 // Se puede repetir: solo cambia lo que falta y nunca pisa algo distinto sin --forzar.
-// Uso, dentro del clon: node instalar.js [--forzar] [--galeria] [--statusline]
+// Uso, dentro del clon: node instalar.js [--forzar] [--galeria] [--statusline] [--cursor]
 'use strict';
 const fs = require('fs');
 const os = require('os');
@@ -27,6 +28,8 @@ const COLORES = { working: '#d77757', blocked: '#e66464', done: '#78c88c' };
 const IGNORE_GLOBAL = '**/.claude/worktrees/';
 const REGLA_GALERIA = '- Si el usuario menciona `@imagenN` (p. ej. `@imagen3`), lee `~/.config/herdr-app/galeria/imagenN.png` con Read (si se soltó otro formato, `imagenN.jpg`, `.gif`…): son las imágenes de la galería de herdr.';
 const STATUSLINE = 'node ~/.claude/statusline/statusline.js';
+// Evento de Cursor → estado para herdr. Sin «te necesita»: Cursor no avisa cuando pide permiso.
+const HOOKS_CURSOR = { sessionStart: 'idle', beforeSubmitPrompt: 'working', stop: 'idle' };
 
 let avisos = 0;
 const ok = (m) => console.log('  ✓ ' + m);
@@ -128,6 +131,34 @@ if (opcion('--statusline')) {
   if (actual === STATUSLINE) ok('statusLine');
   else if (actual && !forzar) aviso(`ya hay otra statusLine («${actual}»); --forzar la cambia`);
   else { settings.statusLine = { type: 'command', command: STATUSLINE }; escribirJson(rutaSettings, settings); hecho('statusLine'); }
+}
+
+if (opcion('--cursor')) {
+  console.log('Cursor CLI (hooks):');
+  // hooks.json no se versiona: la ruta del clon se escribe al instalar.
+  const script = path.join(repo, 'cursor', 'estado.js').replace(/\\/g, '/');
+  const rutaHooks = path.join(os.homedir(), '.cursor', 'hooks.json');
+  const config = leerJson(rutaHooks, { version: 1, hooks: {} });
+  config.hooks = config.hooks || {};
+  let cambios = false;
+  for (const [evento, estado] of Object.entries(HOOKS_CURSOR)) {
+    const command = `node "${script}" ${estado}`;
+    const lista = (config.hooks[evento] = config.hooks[evento] || []);
+    const nuestro = lista.find((h) => h.command?.includes('estado.js'));
+    if (nuestro?.command === command) ok(evento);
+    else if (nuestro) { nuestro.command = command; cambios = true; hecho(`${evento} (ruta nueva)`); }
+    else { lista.push({ command }); cambios = true; hecho(evento); }
+  }
+  if (cambios) { fs.mkdirSync(path.dirname(rutaHooks), { recursive: true }); escribirJson(rutaHooks, config); }
+
+  // Entrada del menú + de herdr: abre Cursor por el lanzador, que es quien avisa a herdr.
+  const rutaProgramas = path.join(home, 'programs.json');
+  const programas = leerJson(rutaProgramas, {});
+  programas.programs = programas.programs || {};
+  const run = ['node', path.join(repo, 'cursor', 'cursor-twice.js').replace(/\\/g, '/')];
+  const entrada = { name: 'Cursor (TWICE)', icon: 'icons/cursor.svg', run };
+  if (JSON.stringify(programas.programs['cursor-twice']) === JSON.stringify(entrada)) ok('menú + de herdr');
+  else { programas.programs['cursor-twice'] = entrada; escribirJson(rutaProgramas, programas); hecho('menú + de herdr: «Cursor (TWICE)»'); }
 }
 
 console.log('herdr-app check:');
