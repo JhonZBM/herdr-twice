@@ -1,11 +1,16 @@
+// Clon de "spaces" (herdr 0.1.15) para el layout jonz. Cambios propios:
+//   - avatar: la mascota de twice-nine del agente del espacio (dormida, trabajando...);
+//     sin mascota, el icono de su programa (Claude, Codex...); sin agente, la letra;
+//   - nombre sin el adorno inicial (el ✻ de nombre-agente) y entero en el tooltip;
+//   - el bloque mide lo que sus filas (layout.resize al cambiar el número de espacios).
 // Workspace spaces: stable colored avatars, worktrees under their checkout,
 // grouped by machine when more than one is known. After a space's name, the repo
 // its first terminal is in now, only where unusual: branch, ahead/behind. Agent state lives in the agents list, not here. Click to
 // switch, right-click for its menu, drag to reorder.
 
-import { View, div, svg } from "gpui-kit";
+import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { spaces, machines, panes, run, openOverlay, exec, hc, theme, shared, setShared, watchFolder, window, layout } from "herdr";
+import { agents, spaces, machines, panes, run, openOverlay, exec, hc, theme, shared, setShared, watchFolder, window, layout } from "herdr";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -36,6 +41,15 @@ const FALLBACK = 60000;
 
 // What a stored color name looks like on an avatar (the same in every mod
 // that draws space avatars): one strong color per hue, light and dark alike.
+// twice-nine: puestos por agente (estado compartido) y sprites. El orden de las
+// integrantes es el de twice-nine/members.js (un mod no puede importar otro).
+const SLOTS = "twice.slots";
+const SLUGS = ["nayeon", "jeongyeon", "momo", "sana", "jihyo", "mina", "dahyun", "chaeyoung", "tzuyu"];
+const URGENCIA = { blocked: 0, done: 1, working: 2, idle: 3 };
+const limpio = (s) => (s ?? "").replace(/^[^\p{L}\p{N}]+/u, "").trim();
+// El bloque de este mod en el layout y el máximo de filas antes de hacer scroll.
+const BLOQUE = "spaces", MAX_FILAS = 8, CABECERA = 31, PIE = 14;
+
 const MARK = { ansi6: "#22a99a", ansi3: "#e3814f", ansi4: "#5b8def", ansi5: "#8b7cf6", ansi2: "#3fae6a", ansi1: "#d9649a" };
 
 // A space speaks up only when something in it needs you.
@@ -390,9 +404,11 @@ export default class Spaces extends View {
     const colors = shared("space.colors") ?? {};
     const color = colors[w.id] ?? "ansi6";
     const fill = color.startsWith("#") ? color : (MARK[color] ?? t[color]);
+    const nombre = limpio(w.name) || w.name;
     return v_flex()
       .relative()
       .id(`space-${w.id}`)
+      .tooltip(nombre)
       .px(8)
       .h(rowHeight({ tree }))
       .flex_none()
@@ -435,10 +451,43 @@ export default class Spaces extends View {
           .gap(9)
           .items_center()
           .when(Boolean(tree), el => el.pl(22).child(svg("mods/workspace-chrome/branch.svg").size(13).text_color(t.dim)))
-          .when(!tree, el => el.child(h_flex().size(18).flex_none().rounded(5).bg(fill).items_center().justify_center().text_size(10.5).font_bold().text_color("#ffffff").child([...w.name][0]?.toUpperCase() ?? "?")))
-          .child(div().flex_shrink(0).max_w(150).truncate().text_color(t.foreground).child(w.name))
+          .when(!tree, el => el.child(this.avatar(w, nombre, fill)))
+          .child(div().min_w(0).truncate().text_color(t.foreground).child(nombre))
           .child(g ? this.gitTail(g, tree, w.name, t) : div().flex_1()),
       );
+  }
+
+  // El agente que representa al espacio: el enfocado, si no el más urgente.
+  agenteDe(w) {
+    const mios = agents().filter((a) => a.space === w.id);
+    return mios.find((a) => a.focused) ?? mios.sort((x, y) => (URGENCIA[x.status] ?? 9) - (URGENCIA[y.status] ?? 9))[0] ?? null;
+  }
+
+  // Mascota (cuadro fijo de su pose: a 18 px no se lee la animación) > icono del programa > letra.
+  avatar(w, nombre, fill) {
+    const a = this.agenteDe(w);
+    const slot = a ? (shared(SLOTS) ?? {})[a.address] : undefined;
+    if (Number.isInteger(slot) && slot >= 0) {
+      // Como en twice-nine: en espera y no es el panel que miras (space activo) → dormida.
+      const mirando = a.focused && spaces().some((s) => s.active && s.id === a.space);
+      const pose = a.status === "idle" && !mirando ? "sleep" : a.status;
+      return image(`mods/twice-nine/sprites/${SLUGS[slot % SLUGS.length]}-${pose}-a.svg`).w(18).h(18).flex_none();
+    }
+    const icon = a?.program?.icon;
+    if (icon) return a.program.tint ? svg(icon).size(16).flex_none().text_color(theme().dim) : image(icon).w(16).h(16).flex_none();
+    return h_flex().size(18).flex_none().rounded(5).bg(fill).items_center().justify_center().text_size(10.5).font_bold().text_color("#ffffff").child([...nombre][0]?.toUpperCase() ?? "?");
+  }
+
+  // Altura a la medida de las filas (hasta MAX_FILAS); solo cuando cambia.
+  ajustarAltura(cx, collapsed) {
+    const nodo = find(layout(), BLOQUE);
+    if (collapsed || nodo?.content?.mod !== "spaces-jonz" || this.resizing) return;
+    const filas = this.ordered();
+    const alto = filas.slice(0, MAX_FILAS).reduce((n, r) => n + rowHeight(r), 0);
+    const px = CABECERA + Math.max(alto, 30) + PIE + 2;
+    if (nodo.size?.px === px) return;
+    this.resizing = true;
+    cx.spawn(async () => { run("layout.resize", { id: BLOQUE, px }); this.resizing = false; });
   }
 
   compact({ w, i }, t) {
@@ -457,9 +506,10 @@ export default class Spaces extends View {
       .child(div().absolute().right(5).text_color(tone(t, w.status)).child(glyph(w.status))));
   }
 
-  render() {
+  render(cx) {
     const t = theme();
     const collapsed = narrow();
+    this.ajustarAltura(cx, collapsed);
     const palette = ["ansi6", "ansi3", "ansi4", "ansi5", "ansi2", "ansi1"];
     const sp = spaces();
     const ids = new Set(sp.map(p => p.id));
