@@ -63,7 +63,8 @@ Ojo (aprendido al probarlo):
 - **Recargar el mod:** herdr no ve los cambios guardados a través del junction. Tras editar
   `main.js`: `herdr-app do layout.switch --name main` y luego `--name jonz`.
 - **`herdr-app check` no prueba lo asíncrono:** un fallo dentro de `cx.spawn` pasa el check.
-  El `fs` de los mods no tiene `stat` (solo readFile, writeFile, readdir, exists, unlink, rmdir, mkdir).
+  El `fs` de los mods no tiene `stat` (solo readFile, writeFile, readdir, exists, unlink, rmdir, mkdir),
+  y `writeFile` con `Uint8Array` escribe 0 bytes (2026-11-13): las copias binarias van por PowerShell.
 - **Windows y archivos borrados:** si herdr tiene abierta la miniatura, el archivo sigue listado un rato
   tras borrarlo; el mod recuerda los recién borrados y deja de esconderlos al guardar algo nuevo.
 - **El menú `@` de Claude Code no sugiere la galería** (solo busca en el proyecto; `/add-dir` no ayuda).

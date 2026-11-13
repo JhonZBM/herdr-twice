@@ -215,18 +215,21 @@ export default class TwiceNine extends View {
     const m = memberOf(slot);
     const detail = [a.program?.name, a.tab_name].filter(Boolean).join(" · ");
     const tone = a.status === "blocked" ? MAGENTA : a.status === "done" ? APRICOT : a.status === "working" ? t.foreground : t.dim;
-    return v_flex().id(`card-${slot}`).w(w).flex_none().rounded(10).overflow_hidden()
-      .border(1).border_color(this.edge(t, a)).bg(a.focused ? t.selected : t.surface)
-      .hover((s) => s.bg(t.hover))
+    // Misma construcción que las tarjetas del selector: el color es el fondo de la
+    // tarjeta y asoma solo arriba, siguiendo la curva; base opaca (chrome, el
+    // fondo de la barra) bajo la capa del estado, que puede ser translúcida.
+    return v_flex().id(`card-${slot}`).w(w).flex_none().rounded(10).bg(m.color)
       .tooltip("Clic: ir al agente · Clic derecho: elegir integrante")
       .on_click(() => run("pane.focus", { pane: a.pane }))
       .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); abrirSelector(a.address, "popup"); })
-      .child(div().h(3).w_full().flex_none().bg(m.color))
-      .child(v_flex().w_full().items_center().px(6).pt(7).pb(8).gap(2)
-        .child(sprite(m.slug, a.status, 48))
-        .child(div().max_w(w - 12).truncate().font_family(FONT).text_size(11).text_color(t.foreground).child(nameOf(slot)))
-        .child(div().text_size(10.5).text_color(tone).child(LABEL[a.status] ?? a.status))
-        .child(div().max_w(w - 12).truncate().text_size(10).text_color(t.dim).child(detail || " ")));
+      .child(v_flex().w_full().mt(3).rounded(10).bg(t.chrome)
+        .child(v_flex().id(`card-in-${slot}`).w_full().rounded(10).border(1).border_color(this.edge(t, a))
+          .bg(a.focused ? t.selected : t.surface).hover((s) => s.bg(t.hover))
+          .items_center().px(6).pt(7).pb(8).gap(2)
+          .child(sprite(m.slug, a.status, 48))
+          .child(div().max_w(w - 12).truncate().font_family(FONT).text_size(11).text_color(t.foreground).child(nameOf(slot)))
+          .child(div().text_size(10.5).text_color(tone).child(LABEL[a.status] ?? a.status))
+          .child(div().max_w(w - 12).truncate().text_size(10).text_color(t.muted).child(detail || " "))));
   }
 
   header(t, count, total) {
