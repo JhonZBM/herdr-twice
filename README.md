@@ -41,6 +41,17 @@ what's missing and warns (without overwriting) when something differs; `--forzar
 Restart herdr to load the pixel font. To update: `git pull`, then `node instalar.js` again (themes and
 layout are copies).
 
+## Just one mod
+
+Each mod works on its own and has its own `RECIPE.md`, `keys.json` and preview in its folder:
+[twice-nine](mods/twice-nine), [galeria](mods/galeria), [spaces-twice](mods/spaces-twice),
+[nombre-agente](mods/nombre-agente).
+
+- Ask your agent in herdr: *"add this herdr mod: https://github.com/JhonZBM/herdr-twice/tree/main/mods/galeria"*.
+- Or with the script: `node instalar.js --solo galeria` (several: `--solo galeria,twice-nine`). It installs
+  those mods and their keys without touching your layout or themes; then ask your agent to place them
+  following their RECIPE.md.
+
 ## Keys
 
 | Key | Action |

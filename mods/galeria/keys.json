@@ -1,0 +1,6 @@
+{
+  "global": {
+    "ctrl-shift-v": "galeria.pegar",
+    "alt-g": "galeria.ver"
+  }
+}

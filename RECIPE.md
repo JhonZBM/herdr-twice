@@ -61,7 +61,7 @@ Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silksc
   paste `@imagenN` (the clipboard is the only way to type `@`); copying dropped files also goes through
   PowerShell (the mod `fs` writes 0 bytes for binary data).
 - `mods/nombre-agente/`: `space.rename` from the agent's title; `pickFolder` + `space.new`.
-- `keys.json`: the global keys above. Also remove `"ctrl-shift-v": "terminal.paste"` from the
+- Keys: each mod's `keys.json` (`mods/<mod>/keys.json`), merged into the global section. Also remove `"ctrl-shift-v": "terminal.paste"` from the
   `terminal` section, or that key keeps pasting text instead of the screenshot.
 
 ## Watch out

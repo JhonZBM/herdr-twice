@@ -1,9 +1,0 @@
-{
-  "global": {
-    "ctrl-shift-v": "galeria.pegar",
-    "ctrl-shift-m": "nombre-agente.nuevo",
-    "alt-t": "twice-nine.elegir",
-    "alt-shift-t": "twice-nine.siguiente",
-    "alt-g": "galeria.ver"
-  }
-}

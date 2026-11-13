@@ -41,6 +41,16 @@ pisar) si algo es distinto; `--forzar` lo pisa.
 Reinicia herdr para cargar la fuente pixel. Para actualizar: `git pull` y otra vez `node instalar.js` (temas
 y layout son copias).
 
+## Solo un mod
+
+Cada mod funciona por su cuenta y lleva en su carpeta su `RECIPE.md`, su `keys.json` y su captura:
+[twice-nine](mods/twice-nine), [galeria](mods/galeria), [spaces-twice](mods/spaces-twice),
+[nombre-agente](mods/nombre-agente).
+
+- Pídeselo a tu agente en herdr: *«añade este mod de herdr: https://github.com/JhonZBM/herdr-twice/tree/main/mods/galeria»*.
+- O con el script: `node instalar.js --solo galeria` (varios: `--solo galeria,twice-nine`). Instala esos mods y
+  sus atajos sin tocar tu layout ni tus temas; luego pídele a tu agente que los coloque según su RECIPE.md.
+
 ## Atajos
 
 | Tecla | Acción |
