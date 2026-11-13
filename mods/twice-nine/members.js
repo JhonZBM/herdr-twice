@@ -17,3 +17,4 @@ export const MAGENTA = "#ff5fa2";
 export const FONT = "Silkscreen";
 export const LABEL = { working: "trabajando", blocked: "te necesita", done: "listo", idle: "en espera" };
 export const SLOTS = "twice.slots";
+export const PREFS = "twice.prefs";

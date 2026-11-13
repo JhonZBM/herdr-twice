@@ -3,14 +3,16 @@
 //   - bloque del sidebar: tarjetas ("photocards") de los agentes abiertos y
 //     una banca con el resto de las mascotas;
 //   - cabecera de panel (props().pane): la mascota mini junto al nombre.
-// Elegir integrante: comando "twice-nine.elegir" (agente enfocado) o clic en la
-// mascota de la cabecera; abre este mismo mod como ventana (props().elegir).
+// Elegir integrante: comando "twice-nine.elegir" (agente enfocado, diálogo
+// centrado) o clic en la mascota de la cabecera (menú junto al puntero); abre
+// este mismo mod con props().elegir. La elección se recuerda por espacio: el
+// próximo agente que se abra ahí vuelve a tener la misma integrante.
 // Solo texto, color y sprites propios; sin logo ni imagenes oficiales.
 
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { agents, panes, theme, run, props, shared, setShared, setAgentOrder, home, layout, nextCommand, openOverlay, closeOverlay } from "herdr";
-import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL, SLOTS } from "./members.js";
+import { agents, panes, spaces, theme, run, props, shared, setShared, setAgentOrder, home, layout, nextCommand, openOverlay, closeOverlay } from "herdr";
+import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL, SLOTS, PREFS } from "./members.js";
 
 const N = MEMBERS.length;
 const STATES = new Set(["working", "blocked", "done", "idle"]);
@@ -37,6 +39,11 @@ function sprite(slug, status, size) {
 const memberOf = (slot) => MEMBERS[slot % N];
 const nameOf = (slot) => (slot >= N ? `${memberOf(slot).name} ${Math.floor(slot / N) + 1}` : memberOf(slot).name);
 const slotsNow = () => /** @type {Record<string, number>} */ (shared(SLOTS) ?? {});
+const prefsNow = () => /** @type {Record<string, number>} */ (shared(PREFS) ?? {});
+const limpio = (s) => (s ?? "").replace(/^[^\p{L}\p{N}]+/u, "").trim();
+// Cómo se nombra a un agente en el selector: su espacio, o su pestaña.
+const spaceName = (id) => { const n = spaces().find((x) => x.id === id)?.name ?? ""; return limpio(n) || n.trim(); };
+const quien = (a) => spaceName(a.space) || a.tab_name || a.program?.name || "agente";
 
 // Match the first visible tab frame, including the active child of a stack.
 function paneFrame(node) {
@@ -54,11 +61,16 @@ function paneFrame(node) {
   return null;
 }
 
-// Abre el selector para un agente. Ventana con clave: si varias copias del mod
-// reciben el comando, la segunda reemplaza a la primera en vez de duplicarla.
-function abrirSelector(address) {
+// Medidas del selector: rejilla de 3x3 tarjetas.
+const COLS = 3, CARD_W = 100, CARD_H = 104, GAP = 8, PAD = 16;
+const ANCHO = PAD * 2 + COLS * CARD_W + (COLS - 1) * GAP;
+const ALTO = 436;
+
+// Abre el selector para un agente: "dialog" centrado (Alt+T) o "popup" junto
+// al puntero (clic en la mascota). Clic fuera o Esc lo cierran.
+function abrirSelector(address, kind = "dialog") {
   if (!address) return;
-  openOverlay({ mod: "twice-nine", kind: "window", key: "twice-elegir", width: 300, height: 290, props: { elegir: address } });
+  openOverlay({ mod: "twice-nine", kind, width: ANCHO, height: ALTO, props: { elegir: address } });
 }
 
 // Da al agente la integrante i; si otro agente vivo la tenia, intercambian puestos.
@@ -73,6 +85,13 @@ function asignar(address, i) {
   }
   slots[address] = i;
   setShared(SLOTS, slots);
+  // Recordarla para el espacio del agente (y olvidar espacios que ya no existen).
+  const space = agents().find((a) => a.address === address)?.space;
+  if (!space) return;
+  const ids = new Set(spaces().map((x) => x.id));
+  const prefs = Object.fromEntries(Object.entries(prefsNow()).filter(([k]) => ids.has(k)));
+  prefs[space] = i;
+  setShared(PREFS, prefs);
 }
 
 // Carpeta relativa a home ("~", "~\proyecto"). En Windows herdr da rutas con "\"
@@ -90,6 +109,8 @@ export default class TwiceNine extends View {
     this.size = null;
     this.hovered = false;
     if (props()?.elegir) {
+      const cur = slotsNow()[props().elegir];
+      this.sel = Number.isInteger(cur) ? cur % N : 0;
       this.handle = cx.focus_handle();
       this.handle.focus();
       return;
@@ -98,7 +119,7 @@ export default class TwiceNine extends View {
     cx.spawn(async () => {
       for (;;) {
         const c = await nextCommand();
-        if (c === "elegir") abrirSelector(agents().find((a) => a.focused)?.address);
+        if (c === "elegir") abrirSelector(agents().find((a) => a.focused)?.address, "dialog");
       }
     });
   }
@@ -133,6 +154,7 @@ export default class TwiceNine extends View {
     const list = agents();
     if (!list.length) return false;
     const slots = { ...slotsNow() };
+    const prefs = prefsNow();
     const live = new Set(list.map((a) => a.address));
     const taken = new Map();
     let dirty = false;
@@ -143,12 +165,17 @@ export default class TwiceNine extends View {
     for (const a of list) {
       if (taken.get(slots[a.address]) === a.address) continue;
       const held = new Set(Object.values(slots));
-      // Primero un puesto que nadie tenga; si no, el de un agente que ya no esta.
+      // Primero la integrante recordada para su espacio, si ningún agente vivo la
+      // tiene; si no, un puesto que nadie tenga; si no, el de un agente que ya no esta.
+      const fav = prefs[a.space];
       let s = 0;
-      while (s < N && held.has(s)) s++;
-      if (s >= N) {
-        s = 0;
-        while (taken.has(s)) s++;
+      if (Number.isInteger(fav) && fav >= 0 && fav < N && !taken.has(fav)) s = fav;
+      else {
+        while (s < N && held.has(s)) s++;
+        if (s >= N) {
+          s = 0;
+          while (taken.has(s)) s++;
+        }
       }
       for (const [k, v] of Object.entries(slots)) if (v === s && !live.has(k)) delete slots[k];
       slots[a.address] = s;
@@ -255,7 +282,7 @@ export default class TwiceNine extends View {
       .on_click(() => run("pane.focus", { pane }))
       .when(mine, (el) => el
         .child(div().id(`ph-m-${pane}`).flex_none().cursor_pointer().tooltip("Elegir integrante")
-          .on_click((_e, cx) => { cx.stop_propagation(); abrirSelector(p.terminal); })
+          .on_click((_e, cx) => { cx.stop_propagation(); abrirSelector(p.terminal, "popup"); })
           .child(sprite(memberOf(slot).slug, st, 22)))
         .child(div().flex_none().font_family(FONT).text_size(10.5).text_color(memberOf(slot).color).child(nameOf(slot))))
       .when(!mine && Boolean(pic), (el) => el.child(pic))
@@ -270,7 +297,9 @@ export default class TwiceNine extends View {
         .child(button(`ph-x-${pane}`, "close", "pane.close", { pane })));
   }
 
-  // Ventana del selector: las nueve; clic o tecla 1-9 elige, Esc cierra.
+  // Selector: las nueve en una rejilla. Clic, flechas + Enter (o 1-9) eligen;
+  // Esc o clic fuera cierran. Cada tarjeta dice si es la actual, quién la tiene
+  // o si está libre; la resaltada se anima.
   selector() {
     const t = theme();
     const address = props().elegir;
@@ -278,35 +307,57 @@ export default class TwiceNine extends View {
     const all = agents();
     const a = all.find((x) => x.address === address);
     const cur = slots[address];
+    const actual = Number.isInteger(cur) ? cur % N : -1;
+    const duena = (i) => all.find((x) => x.address !== address && slots[x.address] === i);
     const cerrar = () => closeOverlay(props().overlay);
-    const elegir = (i) => { asignar(address, i); cerrar(); };
-    const taken = (i) => all.some((x) => x.address !== address && slots[x.address] === i);
+    const elegir = (i) => { if (i !== actual) asignar(address, i); cerrar(); };
     const quieto = (_e, cx) => cx.stop_propagation();
-    return v_flex().id("elegir").track_focus(this.handle).size_full().p(12).gap(10).rounded(10).bg(t.popover)
+
+    const tarjeta = (m, i) => {
+      const esActual = i === actual, foco = i === this.sel, otro = duena(i);
+      const pose = esActual ? (a?.status ?? "idle") : foco ? "working" : "idle";
+      const nota = esActual ? "actual" : otro ? `con ${quien(otro)}` : "libre";
+      return v_flex().id(`el-${i}`).w(CARD_W).h(CARD_H).flex_none().rounded(10).overflow_hidden().cursor_pointer()
+        .border(1).border_color(foco ? m.color : esActual ? t.input : t.border)
+        .bg(esActual ? t.selected : foco ? t.hover : t.surface)
+        .on_mouse_down("left", quieto)
+        .on_hover((dentro, cx) => { if (dentro && this.sel !== i) { this.sel = i; cx.notify(); } })
+        .on_click(() => elegir(i))
+        .child(div().h(3).w_full().flex_none().bg(m.color))
+        .child(v_flex().flex_1().w_full().items_center().justify_center().gap(4).px(8)
+          .child(sprite(m.slug, pose, 40))
+          .child(div().max_w(CARD_W - 16).truncate().font_family(FONT).text_size(11).text_color(m.color).child(m.name))
+          .child(div().max_w(CARD_W - 16).truncate().text_size(10)
+            .text_color(esActual ? t.foreground : otro ? t.dim : t.muted).child(nota)));
+    };
+
+    const filas = [];
+    for (let f = 0; f < N; f += COLS) {
+      filas.push(h_flex().gap(GAP).children(MEMBERS.slice(f, f + COLS).map((m, k) => tarjeta(m, f + k))));
+    }
+    const agente = a ? [a.program?.name || "Agente", quien(a)].join(" · ") : "agente cerrado";
+
+    return v_flex().id("elegir").track_focus(this.handle).size_full().p(PAD).gap(12).bg(t.popover)
       .on_key_down((e, cx) => {
         const n = Number(e.key);
         if (e.key === "escape") cerrar();
+        else if (e.key === "enter") elegir(this.sel);
+        else if (e.key === "left") this.sel = (this.sel + N - 1) % N;
+        else if (e.key === "right") this.sel = (this.sel + 1) % N;
+        else if (e.key === "up") this.sel = (this.sel + N - COLS) % N;
+        else if (e.key === "down") this.sel = (this.sel + COLS) % N;
         else if (n >= 1 && n <= N) elegir(n - 1);
         else return;
         cx.stop_propagation();
+        cx.notify();
       })
-      .child(h_flex().items_center().justify_between()
+      .child(v_flex().gap(4)
         .child(div().font_family(FONT).text_size(11).text_color(t.muted).child("ELEGIR INTEGRANTE"))
-        .child(div().id("cerrar").text_size(11).text_color(t.dim).cursor_pointer()
-          .on_mouse_down("left", quieto).on_click(cerrar).child("Esc")))
-      .child(div().truncate().text_size(11).text_color(t.dim)
-        .child(a ? [a.program?.name, a.tab_name].filter(Boolean).join(" · ") || "agente" : "agente cerrado"))
-      .child(h_flex().flex_wrap().gap(6).children(MEMBERS.map((m, i) => {
-        const now = Number.isInteger(cur) && cur % N === i;
-        return v_flex().id(`el-${i}`).w(84).items_center().py(6).gap(2).rounded(8).cursor_pointer()
-          .border(1).border_color(now ? m.color : t.border).bg(now ? t.selected : t.surface)
-          .hover((s) => s.bg(t.hover))
-          .on_mouse_down("left", quieto)
-          .on_click(() => elegir(i))
-          .child(sprite(m.slug, "idle", 32))
-          .child(div().font_family(FONT).text_size(10).text_color(m.color).child(`${i + 1} ${m.name}`))
-          .child(div().text_size(9.5).text_color(t.dim).child(taken(i) ? "intercambia" : " "));
-      })));
+        .child(div().truncate().text_size(12).text_color(t.foreground).child(agente)))
+      .child(v_flex().gap(GAP).children(filas))
+      .child(h_flex().items_center().justify_between().text_size(10).text_color(t.dim)
+        .child(div().child(a?.space ? "Se recuerda en este espacio" : " "))
+        .child(div().child("Enter elige · Esc cierra")));
   }
 
   render(cx) {
