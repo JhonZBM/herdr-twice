@@ -1,7 +1,8 @@
 // TWICE Nine: cada agente va acompanado por una mascota original, una por
 // integrante. Dos papeles en un mismo mod:
 //   - bloque del sidebar: tarjetas ("photocards") de los agentes abiertos y
-//     una banca con el resto de las mascotas;
+//     una banca con el resto de las mascotas, dormidas (z z z) mientras
+//     ningún agente las usa;
 //   - cabecera de panel (props().pane): la mascota mini junto al nombre.
 // Elegir integrante: comando "twice-nine.elegir" (agente enfocado, diálogo
 // centrado) o clic en la mascota de la cabecera (menú junto al puntero); abre
@@ -18,7 +19,8 @@ import { agents, panes, spaces, theme, run, props, shared, setShared, setAgentOr
 import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL, SLOTS, PREFS } from "./members.js";
 
 const N = MEMBERS.length;
-const STATES = new Set(["working", "blocked", "done", "idle"]);
+// Los cuatro estados de un agente, más "sleep" para la mascota sin agente.
+const STATES = new Set(["working", "blocked", "done", "idle", "sleep"]);
 const frame = (slug, state, f) => `mods/twice-nine/sprites/${slug}-${state}-${f}.svg`;
 
 // La mascota en su pose. Dos cuadros apilados que se relevan con opacidad:
@@ -30,6 +32,14 @@ function sprite(slug, status, size) {
   const period = state === "working" ? 640 : state === "blocked" ? 900 : 1100;
   const layer = (f, from, to) => image(frame(slug, state, f)).absolute().top(0).left(0).w(size).h(size)
     .loop("opacity", { from, to, period, easing: "ease-in-out" });
+  // Dormida: nadie la usa. Cabecea despacio y las z suben (dos cuadros cada cosa).
+  if (state === "sleep") {
+    const z = (f, from, to) => image(`mods/twice-nine/sprites/zzz-${f}.svg`).absolute().top(0).left(0).w(size).h(size)
+      .loop("opacity", { from, to, period: 1300, easing: "ease-in-out" });
+    const nod = (f, from, to) => image(frame(slug, "sleep", f)).absolute().top(0).left(0).w(size).h(size)
+      .loop("opacity", { from, to, period: 2600, easing: "ease-in-out" });
+    return box.child(nod("a", 1, 0)).child(nod("b", 0, 1)).child(z("a", 1, 0)).child(z("b", 0, 1));
+  }
   const mark = state === "blocked" ? "bang" : state === "done" ? "sparkle" : null;
   const m = Math.round(size / 2.4);
   return box
@@ -280,8 +290,8 @@ export default class TwiceNine extends View {
         .when(!big, (el) => el.child(h_flex().flex_wrap().gap(6).children(active.map((s) => this.card(t, s, bySlot.get(s), w)))))
         .when(big, (el) => el.child(div().px(4).text_size(11.5).text_color(t.dim).child("Abre un agente y una de las nueve lo acompaña.")))
         .when(bench.length > 0, (el) => el.child(h_flex().flex_wrap().gap(big ? 8 : 5).px(2)
-          .children(bench.map((i) => div().id(`bench-${i}`).flex_none().opacity(big ? 0.9 : 0.5).tooltip(MEMBERS[i].name)
-            .child(sprite(MEMBERS[i].slug, "idle", big ? 36 : 24)))))));
+          .children(bench.map((i) => div().id(`bench-${i}`).flex_none().opacity(big ? 0.9 : 0.7).tooltip(`${MEMBERS[i].name} · dormida`)
+            .child(sprite(MEMBERS[i].slug, "sleep", big ? 36 : 24)))))));
   }
 
   // Cabecera de panel: como la de Herdr, con la mascota del agente.
@@ -342,7 +352,8 @@ export default class TwiceNine extends View {
 
     const tarjeta = (m, i) => {
       const esActual = i === actual, foco = i === this.sel, otro = duena(i);
-      const pose = esActual ? (a?.status ?? "idle") : foco ? "working" : "idle";
+      // La libre duerme; la que tiene otro agente espera despierta; la resaltada baila.
+      const pose = esActual ? (a?.status ?? "idle") : foco ? "working" : otro ? "idle" : "sleep";
       const nota = esActual ? "actual" : otro ? `con ${quien(otro)}` : "libre";
       // La franja de color es el fondo de la propia tarjeta (redondeada). Encima,
       // 3 px más abajo y con el mismo radio, una capa opaca (popover) tapa el resto:
