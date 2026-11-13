@@ -75,10 +75,14 @@ function asignar(address, i) {
   setShared(SLOTS, slots);
 }
 
+// Carpeta relativa a home ("~", "~\proyecto"). En Windows herdr da rutas con "\"
+// y sin distinguir mayúsculas: se comparan normalizadas.
 function folder(cwd) {
   if (!cwd) return "";
-  const h = home();
-  return cwd === h ? "~" : cwd.startsWith(h + "/") ? "~" + cwd.slice(h.length) : cwd;
+  const norm = (s) => s.replace(/\\/g, "/").toLowerCase();
+  const c = norm(cwd), h = norm(home() ?? "");
+  if (!h) return cwd;
+  return c === h ? "~" : c.startsWith(h + "/") ? "~" + cwd.slice(h.length) : cwd;
 }
 
 export default class TwiceNine extends View {
@@ -97,9 +101,30 @@ export default class TwiceNine extends View {
         if (c === "elegir") abrirSelector(agents().find((a) => a.focused)?.address);
       }
     });
-    // Los puestos se reparten fuera de render (alli no se puede escribir estado compartido).
-    cx.timer.every(1000, (cx) => { if (this.sync()) cx.notify(); });
-    cx.spawn(async (cx) => { if (this.sync()) cx.notify(); });
+  }
+
+  // ¿Algún agente sin puesto propio? Mismo criterio que sync(), sin escribir nada.
+  pendiente() {
+    const slots = slotsNow();
+    const seen = new Set();
+    for (const a of agents()) {
+      const s = slots[a.address];
+      if (!Number.isInteger(s) || s < 0 || seen.has(s)) return true;
+      seen.add(s);
+    }
+    return false;
+  }
+
+  // Herdr redibuja cuando cambian los agentes: ahí se mira si falta repartir y,
+  // si falta, se reparte en una tarea (render no escribe estado compartido).
+  // Sin temporizador: nada corre mientras los agentes no cambian.
+  programarSync(cx) {
+    if (this.syncing || !this.pendiente()) return;
+    this.syncing = true;
+    cx.spawn(async (cx) => {
+      this.syncing = false;
+      if (this.sync()) cx.notify();
+    });
   }
 
   // Da a cada agente un puesto estable (0..8 una integrante; 9+ segunda ronda)
@@ -164,7 +189,8 @@ export default class TwiceNine extends View {
         .child(div().flex_1().h(2).bg(MAGENTA)));
   }
 
-  list() {
+  list(cx) {
+    this.programarSync(cx);
     const t = theme();
     const all = agents();
     const slots = slotsNow();
@@ -283,8 +309,8 @@ export default class TwiceNine extends View {
       })));
   }
 
-  render() {
+  render(cx) {
     if (props()?.elegir) return this.selector();
-    return props()?.pane ? this.pane() : this.list();
+    return props()?.pane ? this.pane() : this.list(cx);
   }
 }

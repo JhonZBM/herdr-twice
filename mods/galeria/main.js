@@ -4,7 +4,7 @@
 // - Pegar (botón o tecla "galeria.pegar"): la imagen del portapapeles
 //   (o los archivos de imagen copiados) pasa a imagenN.png.
 // - Soltar archivos de imagen sobre el panel: se copian tal cual.
-// - Clic en una miniatura: escribe "@<ruta> " en el terminal enfocado.
+// - Clic en una miniatura: escribe "@imagenN " en el terminal enfocado.
 // - Limpiar: pide confirmación (mod confirm) y vacía la carpeta.
 // PowerShell solo corre al pegar o insertar; nunca al dibujar, soltar o limpiar.
 
@@ -78,7 +78,7 @@ export default class Galeria extends View {
     return max + 1;
   }
 
-  // Corre `trabajo(n)` (que devuelve cuántas imágenes guardó) sin solaparse.
+  // Corre `trabajo(n)` (guarda desde imagenN en adelante) sin solaparse.
   tarea(cx, trabajo) {
     if (this.ocupado) return;
     this.ocupado = true;
@@ -89,7 +89,7 @@ export default class Galeria extends View {
       const n = this.siguiente();
       try {
         await fs.mkdir(DIR, { recursive: true });
-        const hechas = await trabajo(n);
+        await trabajo(n);
       } catch (e) {
         notify({ title: "Galería: no se pudo guardar", body: String(e?.message ?? e).slice(0, 300), level: "error" });
       }

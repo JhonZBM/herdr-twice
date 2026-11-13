@@ -202,16 +202,6 @@
         }
       ],
       "resizable": false
-    },
-    {
-      "id": "b0f0b39ebb370d62b7321e4e73a379410",
-      "type": "block",
-      "content": {
-        "mod": "twice-nine"
-      },
-      "size": {
-        "px": 320
-      }
     }
   ],
   "background": "canvas",
