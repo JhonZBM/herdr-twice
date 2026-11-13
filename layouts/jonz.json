@@ -62,6 +62,16 @@
           ]
         },
         {
+          "id": "nombre-agente",
+          "type": "block",
+          "size": {
+            "px": 0
+          },
+          "content": {
+            "mod": "nombre-agente"
+          }
+        },
+        {
           "id": "sidebar-footer",
           "type": "block",
           "content": {
