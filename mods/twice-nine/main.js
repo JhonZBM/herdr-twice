@@ -65,9 +65,11 @@ function paneFrame(node) {
 }
 
 // Medidas del selector: rejilla de 3x3 tarjetas.
-const COLS = 3, CARD_W = 100, CARD_H = 104, GAP = 8, PAD = 16;
-const ANCHO = PAD * 2 + COLS * CARD_W + (COLS - 1) * GAP;
-const ALTO = 436;
+// El marco del diálogo (borde de 1 px por lado) va dentro de width/height: se suma.
+const COLS = 3, CARD_W = 100, CARD_H = 104, GAP = 8, PAD = 16, MARCO = 2;
+const TITULO_H = 14, AGENTE_H = 16, PIE_H = 14, SEP = 12;
+const ANCHO = MARCO + PAD * 2 + COLS * CARD_W + (COLS - 1) * GAP;
+const ALTO = MARCO + PAD * 2 + TITULO_H + 4 + AGENTE_H + SEP + 3 * CARD_H + 2 * GAP + SEP + PIE_H;
 
 // Abre el selector para un agente: "dialog" centrado (Alt+T) o "popup" junto
 // al puntero (clic en la mascota). Clic fuera o Esc lo cierran.
@@ -339,18 +341,23 @@ export default class TwiceNine extends View {
       const esActual = i === actual, foco = i === this.sel, otro = duena(i);
       const pose = esActual ? (a?.status ?? "idle") : foco ? "working" : "idle";
       const nota = esActual ? "actual" : otro ? `con ${quien(otro)}` : "libre";
-      return v_flex().id(`el-${i}`).w(CARD_W).h(CARD_H).flex_none().rounded(10).overflow_hidden().cursor_pointer()
-        .border(1).border_color(foco ? m.color : esActual ? t.input : t.border)
-        .bg(esActual ? t.selected : foco ? t.hover : t.surface)
+      // La franja de color es el fondo de la propia tarjeta (redondeada). Encima,
+      // 3 px más abajo y con el mismo radio, una capa opaca (popover) tapa el resto:
+      // el color asoma solo arriba y sigue la curva de las esquinas. Sobre ella, la
+      // capa del estado (selected/hover/surface pueden ser translúcidos) con el borde.
+      return v_flex().id(`el-${i}`).w(CARD_W).h(CARD_H).flex_none().rounded(10).cursor_pointer().bg(m.color)
         .on_mouse_down("left", quieto)
         .on_hover((dentro, cx) => { if (dentro && this.sel !== i) { this.sel = i; cx.notify(); } })
         .on_click(() => elegir(i))
-        .child(div().h(3).w_full().flex_none().bg(m.color))
-        .child(v_flex().flex_1().w_full().items_center().justify_center().gap(4).px(8)
-          .child(sprite(m.slug, pose, 40))
-          .child(div().max_w(CARD_W - 16).truncate().font_family(FONT).text_size(11).text_color(m.color).child(m.name))
-          .child(div().max_w(CARD_W - 16).truncate().text_size(10)
-            .text_color(esActual ? t.foreground : otro ? t.dim : t.muted).child(nota)));
+        .child(v_flex().flex_1().w_full().mt(3).rounded(10).bg(t.popover)
+          .child(v_flex().size_full().rounded(10).border(1)
+            .border_color(foco ? m.color : esActual ? t.input : t.border)
+            .bg(esActual ? t.selected : foco ? t.hover : t.surface)
+            .items_center().justify_center().gap(4).px(8)
+            .child(sprite(m.slug, pose, 40))
+            .child(div().max_w(CARD_W - 16).truncate().font_family(FONT).text_size(11).text_color(m.color).child(m.name))
+            .child(div().max_w(CARD_W - 16).truncate().text_size(10)
+              .text_color(esActual ? t.foreground : t.muted).child(nota))));
     };
 
     const filas = [];
@@ -359,7 +366,7 @@ export default class TwiceNine extends View {
     }
     const agente = a ? [a.program?.name || "Agente", quien(a)].join(" · ") : "agente cerrado";
 
-    return v_flex().id("elegir").track_focus(this.handle).size_full().p(PAD).gap(12).bg(t.popover)
+    return v_flex().id("elegir").track_focus(this.handle).size_full().p(PAD).gap(SEP).bg(t.popover)
       .on_key_down((e, cx) => {
         const n = Number(e.key);
         if (e.key === "escape") cerrar();
@@ -374,10 +381,10 @@ export default class TwiceNine extends View {
         cx.notify();
       })
       .child(v_flex().gap(4)
-        .child(div().font_family(FONT).text_size(11).text_color(t.muted).child("ELEGIR INTEGRANTE"))
-        .child(div().truncate().text_size(12).text_color(t.foreground).child(agente)))
+        .child(div().h(TITULO_H).flex().items_center().font_family(FONT).text_size(11).text_color(t.muted).child("ELEGIR INTEGRANTE"))
+        .child(div().h(AGENTE_H).flex().items_center().truncate().text_size(12).text_color(t.foreground).child(agente)))
       .child(v_flex().gap(GAP).children(filas))
-      .child(h_flex().items_center().justify_between().text_size(10).text_color(t.dim)
+      .child(h_flex().h(PIE_H).items_center().justify_between().text_size(10).text_color(t.muted)
         .child(div().child(a?.space ? "Se recuerda en este espacio" : " "))
         .child(div().child("Enter elige · Esc cierra")));
   }
