@@ -7,6 +7,9 @@
 // centrado) o clic en la mascota de la cabecera (menú junto al puntero); abre
 // este mismo mod con props().elegir. La elección se recuerda por espacio: el
 // próximo agente que se abra ahí vuelve a tener la misma integrante.
+// Comando "twice-nine.siguiente": pasa el agente enfocado a la siguiente
+// integrante libre, sin abrir nada. Clic derecho en una tarjeta (o en la
+// mascota del riel) de la barra lateral: el selector junto al puntero.
 // Solo texto, color y sprites propios; sin logo ni imagenes oficiales.
 
 import { View, div, svg, image } from "gpui-kit";
@@ -96,6 +99,20 @@ function asignar(address, i) {
 
 // Carpeta relativa a home ("~", "~\proyecto"). En Windows herdr da rutas con "\"
 // y sin distinguir mayúsculas: se comparan normalizadas.
+// Pasa al agente a la siguiente integrante que ningún otro agente vivo tenga
+// (dando la vuelta). Si están todas ocupadas, no cambia nada.
+function siguiente(address) {
+  if (!address) return;
+  const slots = slotsNow();
+  const all = agents();
+  const ocupadas = new Set(all.filter((x) => x.address !== address).map((x) => slots[x.address]));
+  const cur = Number.isInteger(slots[address]) ? slots[address] % N : -1;
+  for (let k = 1; k <= N; k++) {
+    const i = (cur + k + N) % N;
+    if (!ocupadas.has(i)) { if (i !== cur) asignar(address, i); return; }
+  }
+}
+
 function folder(cwd) {
   if (!cwd) return "";
   const norm = (s) => s.replace(/\\/g, "/").toLowerCase();
@@ -119,7 +136,9 @@ export default class TwiceNine extends View {
     cx.spawn(async () => {
       for (;;) {
         const c = await nextCommand();
-        if (c === "elegir") abrirSelector(agents().find((a) => a.focused)?.address, "dialog");
+        const enfocado = agents().find((a) => a.focused)?.address;
+        if (c === "elegir") abrirSelector(enfocado, "dialog");
+        else if (c === "siguiente") siguiente(enfocado);
       }
     });
   }
@@ -197,7 +216,9 @@ export default class TwiceNine extends View {
     return v_flex().id(`card-${slot}`).w(w).flex_none().rounded(10).overflow_hidden()
       .border(1).border_color(this.edge(t, a)).bg(a.focused ? t.selected : t.surface)
       .hover((s) => s.bg(t.hover))
+      .tooltip("Clic: ir al agente · Clic derecho: elegir integrante")
       .on_click(() => run("pane.focus", { pane: a.pane }))
+      .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); abrirSelector(a.address, "popup"); })
       .child(div().h(3).w_full().flex_none().bg(m.color))
       .child(v_flex().w_full().items_center().px(6).pt(7).pb(8).gap(2)
         .child(sprite(m.slug, a.status, 48))
@@ -240,6 +261,7 @@ export default class TwiceNine extends View {
         const a = bySlot.get(s);
         return div().id(`rail-${s}`).p(2).flex_none().rounded(8).border(1).border_color(this.edge(t, a))
           .on_click(() => run("pane.focus", { pane: a.pane }))
+          .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); abrirSelector(a.address, "popup"); })
           .child(sprite(memberOf(s).slug, a.status, 24));
       }));
     }
