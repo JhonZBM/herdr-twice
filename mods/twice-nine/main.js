@@ -2,7 +2,8 @@
 // integrante. Dos papeles en un mismo mod:
 //   - bloque del sidebar: tarjetas ("photocards") de los agentes abiertos y
 //     una banca con el resto de las mascotas, dormidas (z z z) mientras
-//     ningún agente las usa;
+//     ningún agente las usa; la de un agente en espera que no estás mirando
+//     (sin foco) también duerme;
 //   - cabecera de panel (props().pane): la mascota mini junto al nombre.
 // Elegir integrante: comando "twice-nine.elegir" (agente enfocado, diálogo
 // centrado) o clic en la mascota de la cabecera (menú junto al puntero); abre
@@ -21,6 +22,8 @@ import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL, SLOTS, PREFS } from "./members.
 const N = MEMBERS.length;
 // Los cuatro estados de un agente, más "sleep" para la mascota sin agente.
 const STATES = new Set(["working", "blocked", "done", "idle", "sleep"]);
+// Pose de la mascota de un agente: en espera y sin foco, nadie la usa: duerme.
+const pose = (status, focused) => (status === "idle" && !focused ? "sleep" : status);
 const frame = (slug, state, f) => `mods/twice-nine/sprites/${slug}-${state}-${f}.svg`;
 
 // La mascota en su pose. Dos cuadros apilados que se relevan con opacidad:
@@ -224,6 +227,7 @@ export default class TwiceNine extends View {
   card(t, slot, a, w) {
     const m = memberOf(slot);
     const detail = [a.program?.name, a.tab_name].filter(Boolean).join(" · ");
+    const st = pose(a.status, a.focused);
     const tone = a.status === "blocked" ? MAGENTA : a.status === "done" ? APRICOT : a.status === "working" ? t.foreground : t.dim;
     // Misma construcción que las tarjetas del selector: el color es el fondo de la
     // tarjeta y asoma solo arriba, siguiendo la curva; base opaca (chrome, el
@@ -236,9 +240,9 @@ export default class TwiceNine extends View {
         .child(v_flex().id(`card-in-${slot}`).w_full().rounded(10).border(1).border_color(this.edge(t, a))
           .bg(a.focused ? t.selected : t.surface).hover((s) => s.bg(t.hover))
           .items_center().px(6).pt(7).pb(8).gap(2)
-          .child(sprite(m.slug, a.status, 48))
+          .child(sprite(m.slug, st, 48))
           .child(div().max_w(w - 12).truncate().font_family(FONT).text_size(11).text_color(t.foreground).child(nameOf(slot)))
-          .child(div().text_size(10.5).text_color(tone).child(LABEL[a.status] ?? a.status))
+          .child(div().text_size(10.5).text_color(tone).child(LABEL[st] ?? st))
           .child(div().max_w(w - 12).truncate().text_size(10).text_color(t.muted).child(detail || " "))));
   }
 
@@ -277,7 +281,7 @@ export default class TwiceNine extends View {
         return div().id(`rail-${s}`).p(2).flex_none().rounded(8).border(1).border_color(this.edge(t, a))
           .on_click(() => run("pane.focus", { pane: a.pane }))
           .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); abrirSelector(a.address, "popup"); })
-          .child(sprite(memberOf(s).slug, a.status, 24));
+          .child(sprite(memberOf(s).slug, pose(a.status, a.focused), 24));
       }));
     }
 
@@ -320,7 +324,7 @@ export default class TwiceNine extends View {
       .when(mine, (el) => el
         .child(div().id(`ph-m-${pane}`).flex_none().cursor_pointer().tooltip("Elegir integrante")
           .on_click((_e, cx) => { cx.stop_propagation(); abrirSelector(p.terminal, "popup"); })
-          .child(sprite(memberOf(slot).slug, st, 22)))
+          .child(sprite(memberOf(slot).slug, pose(st, p.focused), 22)))
         .child(div().flex_none().font_family(FONT).text_size(10.5).text_color(memberOf(slot).color).child(nameOf(slot))))
       .when(!mine && Boolean(pic), (el) => el.child(pic))
       .child(div().flex_none().truncate().max_w(260).font_medium().text_color(t.foreground).child(program))
@@ -353,7 +357,7 @@ export default class TwiceNine extends View {
     const tarjeta = (m, i) => {
       const esActual = i === actual, foco = i === this.sel, otro = duena(i);
       // La libre duerme; la que tiene otro agente espera despierta; la resaltada baila.
-      const pose = esActual ? (a?.status ?? "idle") : foco ? "working" : otro ? "idle" : "sleep";
+      const postura = esActual ? pose(a?.status ?? "idle", a?.focused) : foco ? "working" : otro ? "idle" : "sleep";
       const nota = esActual ? "actual" : otro ? `con ${quien(otro)}` : "libre";
       // La franja de color es el fondo de la propia tarjeta (redondeada). Encima,
       // 3 px más abajo y con el mismo radio, una capa opaca (popover) tapa el resto:
@@ -368,7 +372,7 @@ export default class TwiceNine extends View {
             .border_color(foco ? m.color : esActual ? t.input : t.border)
             .bg(esActual ? t.selected : foco ? t.hover : t.surface)
             .items_center().justify_center().gap(4).px(8)
-            .child(sprite(m.slug, pose, 40))
+            .child(sprite(m.slug, postura, 40))
             .child(div().max_w(CARD_W - 16).truncate().font_family(FONT).text_size(11).text_color(m.color).child(m.name))
             .child(div().max_w(CARD_W - 16).truncate().text_size(10)
               .text_color(esActual ? t.foreground : t.muted).child(nota))));

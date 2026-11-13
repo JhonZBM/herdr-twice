@@ -15,6 +15,6 @@ export const MEMBERS = [
 export const APRICOT = "#fcc89b";
 export const MAGENTA = "#ff5fa2";
 export const FONT = "Silkscreen";
-export const LABEL = { working: "trabajando", blocked: "te necesita", done: "listo", idle: "en espera" };
+export const LABEL = { working: "trabajando", blocked: "te necesita", done: "listo", idle: "en espera", sleep: "dormida" };
 export const SLOTS = "twice.slots";
 export const PREFS = "twice.prefs";
