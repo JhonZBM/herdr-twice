@@ -20,8 +20,13 @@ su estado, más una galería de imágenes para Claude Code y una statusline de C
 
 Requisitos: herdr-app (ábrelo una vez), Node y git.
 
-**Lo más fácil:** pídeselo a tu agente en herdr: *«añade herdr.dev/layouts/JhonZBM/twice»*. Sigue las reglas
-de herdr: copia sin pisar y pregunta antes de cambiar un atajo que ya uses.
+**Lo más fácil:** pega esto en un agente dentro de herdr (es la misma línea que da la [galería de herdr](https://herdr.dev/gallery/)):
+
+```
+Read ~/.config/herdr-app/AGENTS.md, then add this layout: https://github.com/JhonZBM/herdr-twice/tree/main
+```
+
+Sigue las reglas de herdr: copia sin pisar y pregunta antes de cambiar un atajo que ya uses.
 
 **Con el script** (los mods quedan enlazados al clon, así `git pull` los actualiza):
 

@@ -20,8 +20,13 @@ status, plus an image gallery for Claude Code and a matching Claude Code status 
 
 Requirements: herdr-app (open it once), Node and git.
 
-**Easiest:** ask your agent in herdr: *"add herdr.dev/layouts/JhonZBM/twice"*. It follows herdr's own rules:
-it copies without overwriting and asks before replacing a key you already use.
+**Easiest:** paste this into an agent in herdr (it is the same line the [herdr gallery](https://herdr.dev/gallery/) gives):
+
+```
+Read ~/.config/herdr-app/AGENTS.md, then add this layout: https://github.com/JhonZBM/herdr-twice/tree/main
+```
+
+It follows herdr's own rules: it copies without overwriting and asks before replacing a key you already use.
 
 **With the script** (mods linked to the clone, so `git pull` updates them):
 
