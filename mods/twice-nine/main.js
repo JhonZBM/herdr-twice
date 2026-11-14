@@ -16,16 +16,20 @@
 
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { agents, panes, spaces, theme, run, props, shared, setShared, setAgentOrder, home, layout, nextCommand, openOverlay, closeOverlay } from "herdr";
+import { panes, spaces, theme, run, props, shared, setShared, setAgentOrder, home, layout, nextCommand, openOverlay, closeOverlay } from "herdr";
 import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL, SLOTS, PREFS } from "./members.js";
+import { equipo, esperaA } from "./relaciones.js";
 
 const N = MEMBERS.length;
-// Los cuatro estados de un agente, más "sleep" para la mascota sin agente.
-const STATES = new Set(["working", "blocked", "done", "idle", "sleep"]);
-// Pose de la mascota de un agente: en espera y no es el panel que miras (el
-// enfocado del space activo; `focused` solo dice el enfocado de su space): duerme.
-const pose = (a) => {
+// Los cuatro estados de un agente, más "sleep" para la mascota sin agente y "wait"
+// para la que espera a una hija (derivado en pose(), herdr no lo reporta).
+const STATES = new Set(["working", "blocked", "done", "idle", "sleep", "wait"]);
+// Pose de la mascota de un agente. Si te necesita, eso manda; si una hija suya sigue
+// trabajando (o te necesita), espera; si no, su estado. En espera y sin ser el panel que
+// miras (el enfocado del space activo; `focused` solo dice el enfocado de su space): duerme.
+const pose = (a, todos = equipo()) => {
   if (!a) return "idle";
+  if (a.status !== "blocked" && esperaA(a.address, todos)) return "wait";
   const mirando = a.focused && spaces().some((s) => s.active && s.id === a.space);
   return a.status === "idle" && !mirando ? "sleep" : a.status;
 };
@@ -37,6 +41,13 @@ function sprite(slug, status, size) {
   const state = STATES.has(status) ? status : "idle";
   const box = div().relative().w(size).h(size).flex_none();
   if (state === "idle") return box.child(image(frame(slug, "idle", "a")).w(size).h(size));
+  const m = Math.round(size / 2.4);
+  // Espera a una hija: quieta, con un reloj de arena que late despacio.
+  if (state === "wait") {
+    return box.child(image(frame(slug, "idle", "a")).w(size).h(size))
+      .child(image("mods/twice-nine/sprites/wait.svg").absolute().top(0).right(0).w(m).h(m)
+        .loop("opacity", { from: 0.45, to: 1, period: 1400, easing: "ease-in-out" }));
+  }
   const period = state === "working" ? 640 : state === "blocked" ? 900 : 1100;
   const layer = (f, from, to) => image(frame(slug, state, f)).absolute().top(0).left(0).w(size).h(size)
     .loop("opacity", { from, to, period, easing: "ease-in-out" });
@@ -49,7 +60,6 @@ function sprite(slug, status, size) {
     return box.child(nod("a", 1, 0)).child(nod("b", 0, 1)).child(z("a", 1, 0)).child(z("b", 0, 1));
   }
   const mark = state === "blocked" ? "bang" : state === "done" ? "sparkle" : null;
-  const m = Math.round(size / 2.4);
   return box
     .child(layer("a", 1, 0))
     .child(layer("b", 0, 1))
@@ -99,7 +109,7 @@ function abrirSelector(address, kind = "dialog") {
 // Da al agente la integrante i; si otro agente vivo la tenia, intercambian puestos.
 function asignar(address, i) {
   const slots = { ...slotsNow() };
-  const live = new Set(agents().map((a) => a.address));
+  const live = new Set(equipo().map((a) => a.address));
   const mine = slots[address];
   const other = Object.keys(slots).find((k) => k !== address && slots[k] === i);
   if (other) {
@@ -109,7 +119,7 @@ function asignar(address, i) {
   slots[address] = i;
   setShared(SLOTS, slots);
   // Recordarla para el espacio del agente (y olvidar espacios que ya no existen).
-  const space = agents().find((a) => a.address === address)?.space;
+  const space = equipo().find((a) => a.address === address)?.space;
   if (!space) return;
   const ids = new Set(spaces().map((x) => x.id));
   const prefs = Object.fromEntries(Object.entries(prefsNow()).filter(([k]) => ids.has(k)));
@@ -124,7 +134,7 @@ function asignar(address, i) {
 function siguiente(address) {
   if (!address) return;
   const slots = slotsNow();
-  const all = agents();
+  const all = equipo();
   const ocupadas = new Set(all.filter((x) => x.address !== address).map((x) => slots[x.address]));
   const cur = Number.isInteger(slots[address]) ? slots[address] % N : -1;
   for (let k = 1; k <= N; k++) {
@@ -156,7 +166,7 @@ export default class TwiceNine extends View {
     cx.spawn(async () => {
       for (;;) {
         const c = await nextCommand();
-        const enfocado = agents().find((a) => a.focused)?.address;
+        const enfocado = equipo().find((a) => a.focused)?.address;
         if (c === "elegir") abrirSelector(enfocado, "dialog");
         else if (c === "siguiente") siguiente(enfocado);
       }
@@ -167,7 +177,7 @@ export default class TwiceNine extends View {
   pendiente() {
     const slots = slotsNow();
     const seen = new Set();
-    for (const a of agents()) {
+    for (const a of equipo()) {
       const s = slots[a.address];
       if (!Number.isInteger(s) || s < 0 || seen.has(s)) return true;
       seen.add(s);
@@ -190,7 +200,7 @@ export default class TwiceNine extends View {
   // Da a cada agente un puesto estable (0..8 una integrante; 9+ segunda ronda)
   // y lo guarda en el estado compartido para que la cabecera de panel lo lea.
   sync() {
-    const list = agents();
+    const list = equipo();
     if (!list.length) return false;
     const slots = { ...slotsNow() };
     const prefs = prefsNow();
@@ -230,17 +240,46 @@ export default class TwiceNine extends View {
     return a.status === "blocked" ? MAGENTA : a.status === "done" ? APRICOT : a.focused ? t.input : t.border;
   }
 
-  card(t, slot, a, w) {
+  // Ir al agente: a su panel, o a un vistazo si es una hija sin panel.
+  ir(a) {
+    if (a.pane) run("pane.focus", { pane: a.pane });
+    else run("terminal.peek", { terminal: a.address });
+  }
+
+  // Renglón de la otra integrante (la madre, o la hija por la que espera): su mini mascota
+  // y su nombre, en su color. Clic: ir a ella.
+  otra(t, id, flecha, a, slot, w) {
+    return h_flex().id(id).max_w(w - 12).gap(3).items_center().rounded(4).cursor_pointer()
+      .tooltip(`Ir a ${nameOf(slot)}`)
+      .on_click((_e, cx) => { cx.stop_propagation(); this.ir(a); })
+      .when(flecha, (el) => el.child(div().flex_none().text_size(10).text_color(t.muted).child("↳")))
+      .child(sprite(memberOf(slot).slug, "idle", 14))
+      .child(div().truncate().font_family(FONT).text_size(9.5).text_color(memberOf(slot).color).child(nameOf(slot)));
+  }
+
+  card(t, slot, a, w, todos) {
     const m = memberOf(slot);
+    const slots = slotsNow();
     const detail = [a.program?.name, a.tab_name].filter(Boolean).join(" · ");
-    const st = pose(a);
+    const st = pose(a, todos);
     const tone = a.status === "blocked" ? MAGENTA : a.status === "done" ? APRICOT : a.status === "working" ? t.foreground : t.dim;
+    // Madre e hija, en dos renglones: el verbo y, debajo, la otra con su mini mascota.
+    // «esperando a / Momo» en la madre; «trabajando con / Jihyo» en la hija, que fuera de
+    // eso dice su estado y «↳ Jihyo» (quién la lanzó).
+    const hija = st === "wait" ? esperaA(a.address, todos) : null;
+    const madre = a.madre ? todos.find((x) => x.address === a.madre) : null;
+    const otra = [hija, madre].find((x) => x && Number.isInteger(slots[x.address]));
+    const trabajaCon = otra === madre && st === "working";
+    const estado = div().text_size(10.5).text_color(st === "wait" ? t.foreground : tone)
+      .child(trabajaCon ? `${LABEL.working} con` : LABEL[st] ?? st);
+    const pie = otra ? this.otra(t, `otra-${slot}`, otra === madre && !trabajaCon, otra, slots[otra.address], w)
+      : div().max_w(w - 12).truncate().text_size(10).text_color(t.muted).child(detail || " ");
     // Misma construcción que las tarjetas del selector: el color es el fondo de la
     // tarjeta y asoma solo arriba, siguiendo la curva; base opaca (chrome, el
     // fondo de la barra) bajo la capa del estado, que puede ser translúcida.
     return v_flex().id(`card-${slot}`).w(w).flex_none().rounded(10).bg(m.color)
       .tooltip("Clic: ir al agente · Clic derecho: elegir integrante")
-      .on_click(() => run("pane.focus", { pane: a.pane }))
+      .on_click(() => this.ir(a))
       .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); abrirSelector(a.address, "popup"); })
       .child(v_flex().w_full().mt(3).rounded(10).bg(t.chrome)
         .child(v_flex().id(`card-in-${slot}`).w_full().rounded(10).border(1).border_color(this.edge(t, a))
@@ -248,8 +287,8 @@ export default class TwiceNine extends View {
           .items_center().px(6).pt(7).pb(8).gap(2)
           .child(sprite(m.slug, st, 48))
           .child(div().max_w(w - 12).truncate().font_family(FONT).text_size(11).text_color(t.foreground).child(nameOf(slot)))
-          .child(div().text_size(10.5).text_color(tone).child(LABEL[st] ?? st))
-          .child(div().max_w(w - 12).truncate().text_size(10).text_color(t.muted).child(detail || " "))));
+          .child(estado)
+          .child(pie)));
   }
 
   header(t, count, total) {
@@ -265,14 +304,26 @@ export default class TwiceNine extends View {
   list(cx) {
     this.programarSync(cx);
     const t = theme();
-    const all = agents();
+    const all = equipo();
     const slots = slotsNow();
     const bySlot = new Map();
     for (const a of all) {
       const s = slots[a.address];
       if (Number.isInteger(s) && !bySlot.has(s)) bySlot.set(s, a);
     }
-    const active = [...bySlot.keys()].sort((x, y) => x - y);
+    // Por puesto, y cada hija justo después de su madre.
+    const porPuesto = [...bySlot.keys()].sort((x, y) => x - y);
+    const vivos = new Set(porPuesto.map((s) => bySlot.get(s).address));
+    const active = [];
+    const colocar = (madre) => {
+      for (const s of porPuesto) {
+        const a = bySlot.get(s);
+        if ((vivos.has(a.madre) ? a.madre : null) !== madre) continue;
+        active.push(s);
+        colocar(a.address);
+      }
+    };
+    colocar(null);
     if (props()?.order !== false) setAgentOrder(active.map((s) => bySlot.get(s).address));
     const out = new Set(active.map((s) => s % N));
     const bench = MEMBERS.map((_m, i) => i).filter((i) => !out.has(i));
@@ -285,9 +336,9 @@ export default class TwiceNine extends View {
       return root.items_center().pt(6).gap(6).overflow_y_scrollbar().children(active.map((s) => {
         const a = bySlot.get(s);
         return div().id(`rail-${s}`).p(2).flex_none().rounded(8).border(1).border_color(this.edge(t, a))
-          .on_click(() => run("pane.focus", { pane: a.pane }))
+          .on_click(() => this.ir(a))
           .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); abrirSelector(a.address, "popup"); })
-          .child(sprite(memberOf(s).slug, pose(a), 24));
+          .child(sprite(memberOf(s).slug, pose(a, all), 24));
       }));
     }
 
@@ -297,7 +348,7 @@ export default class TwiceNine extends View {
     return root
       .child(this.header(t, all.length, N))
       .child(v_flex().flex_1().min_h(0).px(8).pt(8).pb(8).gap(8).overflow_y_scrollbar()
-        .when(!big, (el) => el.child(h_flex().flex_wrap().gap(6).children(active.map((s) => this.card(t, s, bySlot.get(s), w)))))
+        .when(!big, (el) => el.child(h_flex().flex_wrap().gap(6).children(active.map((s) => this.card(t, s, bySlot.get(s), w, all)))))
         .when(big, (el) => el.child(div().px(4).text_size(11.5).text_color(t.dim).child("Abre un agente y una de las nueve lo acompaña.")))
         .when(bench.length > 0, (el) => el.child(h_flex().flex_wrap().gap(big ? 8 : 5).px(2)
           .children(bench.map((i) => div().id(`bench-${i}`).flex_none().opacity(big ? 0.9 : 0.7).tooltip(`${MEMBERS[i].name} · dormida`)
@@ -330,7 +381,7 @@ export default class TwiceNine extends View {
       .when(mine, (el) => el
         .child(div().id(`ph-m-${pane}`).flex_none().cursor_pointer().tooltip("Elegir integrante")
           .on_click((_e, cx) => { cx.stop_propagation(); abrirSelector(p.terminal, "popup"); })
-          .child(sprite(memberOf(slot).slug, pose(agents().find((x) => x.address === p.terminal) ?? { status: st, focused: true }), 22)))
+          .child(sprite(memberOf(slot).slug, pose(equipo().find((x) => x.address === p.terminal) ?? { status: st, focused: true }), 22)))
         .child(div().flex_none().font_family(FONT).text_size(10.5).text_color(memberOf(slot).color).child(nameOf(slot))))
       .when(!mine && Boolean(pic), (el) => el.child(pic))
       .child(div().flex_none().truncate().max_w(260).font_medium().text_color(t.foreground).child(program))
@@ -351,7 +402,7 @@ export default class TwiceNine extends View {
     const t = theme();
     const address = props().elegir;
     const slots = slotsNow();
-    const all = agents();
+    const all = equipo();
     const a = all.find((x) => x.address === address);
     const cur = slots[address];
     const actual = Number.isInteger(cur) ? cur % N : -1;
