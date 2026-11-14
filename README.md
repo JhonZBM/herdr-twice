@@ -92,7 +92,7 @@ size and in resources too: no polling, few processes.
 
 - No `setInterval`/`setTimeout` and no `cx.timer.every` if an event (`watchFolder`, herdr's live data) can replace it; if a
   timer is unavoidable: period ≥ 1 s, with a comment saying why. Every `exec`/`spawn` is one-off.
-- Targets: repo ≤ 1 MB; each SVG ≤ 4 KB; each PNG ≤ 100 KB (root `preview.png` ≤ 150 KB); each `main.js` ≤ 25 KB.
+- Rough guides, not metrics to hit: repo ~1 MB; SVGs a few KB; PNGs ≤ ~100 KB. Reuse what Claude Code and herdr already provide before writing anything new.
 - No absolute paths (drive, user) in what is versioned.
 
 ## License
