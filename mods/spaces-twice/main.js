@@ -43,7 +43,10 @@ const FALLBACK = 60000;
 // that draws space avatars): one strong color per hue, light and dark alike.
 // twice-nine: puestos por agente (estado compartido) y sprites. El orden de las
 // integrantes es el de twice-nine/members.js (un mod no puede importar otro).
-const SLOTS = "twice.slots";
+const SLOTS = "twice.slots", PREFS = "twice.prefs";
+// Integrante por defecto de un espacio, estable y sin estado: la misma cuenta que usa twice-nine
+// al asignar el agente que se abra ahí, así la mascota no cambia al llegar el agente.
+const porDefecto = (id) => [...id].reduce((n, c) => n + c.charCodeAt(0), 0) % 9;
 const SLUGS = ["nayeon", "jeongyeon", "momo", "sana", "jihyo", "mina", "dahyun", "chaeyoung", "tzuyu"];
 const URGENCIA = { blocked: 0, done: 1, working: 2, idle: 3 };
 const limpio = (s) => (s ?? "").replace(/^[^\p{L}\p{N}]+/u, "").trim();
@@ -143,7 +146,7 @@ export default class Spaces extends View {
       if (ready && this.ready[m.name] === false) for (const k of keys) if (JSON.parse(k)[0] === m.name) due.add(k);
       this.ready[m.name] = ready;
     }
-    if (window().active) {
+    if (window()?.active) {
       for (const k of keys) {
         const asks = this.git[k] || this.unsure.has(k);
         if (asks && !this.folded.has(JSON.parse(k)[0]) && now - (this.checked[k] ?? 0) > FALLBACK) due.add(k);
@@ -485,7 +488,7 @@ export default class Spaces extends View {
     return mios.find((a) => a.focused) ?? mios.sort((x, y) => (URGENCIA[x.status] ?? 9) - (URGENCIA[y.status] ?? 9))[0] ?? null;
   }
 
-  // Mascota (cuadro fijo de su pose: a 18 px no se lee la animación) > icono del programa > letra.
+  // Mascota (cuadro fijo de su pose: a 18 px no se lee la animación; sin agente, la del espacio dormida) > icono del programa > letra.
   avatar(w, nombre, fill) {
     const a = this.agenteDe(w);
     const slot = a ? (shared(SLOTS) ?? {})[a.address] : undefined;
@@ -494,6 +497,12 @@ export default class Spaces extends View {
       const mirando = a.focused && spaces().some((s) => s.active && s.id === a.space);
       const pose = a.status === "idle" && !mirando ? "sleep" : a.status;
       return image(`mods/twice-nine/sprites/${SLUGS[slot % SLUGS.length]}-${pose}-a.svg`).w(18).h(18).flex_none();
+    }
+    if (!a) {
+      // Espacio sin agente: ya tiene su mascota (la elegida para el espacio o la de por defecto), dormida.
+      const fav = (shared(PREFS) ?? {})[w.id];
+      const i = Number.isInteger(fav) && fav >= 0 ? fav : porDefecto(w.id);
+      return image(`mods/twice-nine/sprites/${SLUGS[i % SLUGS.length]}-sleep-a.svg`).w(18).h(18).flex_none();
     }
     const icon = a?.program?.icon;
     if (icon) return a.program.tint ? svg(icon).size(16).flex_none().text_color(theme().dim) : image(icon).w(16).h(16).flex_none();

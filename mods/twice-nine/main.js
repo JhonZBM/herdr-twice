@@ -206,7 +206,8 @@ export default class TwiceNine extends View {
       const held = new Set(Object.values(slots));
       // Primero la integrante recordada para su espacio, si ningún agente vivo la
       // tiene; si no, un puesto que nadie tenga; si no, el de un agente que ya no esta.
-      const fav = prefs[a.space];
+      // Sin elección guardada, la misma por defecto que dibuja spaces-twice para un espacio sin agente.
+      const fav = prefs[a.space] ?? [...a.space].reduce((n, c) => n + c.charCodeAt(0), 0) % N;
       let s = 0;
       if (Number.isInteger(fav) && fav >= 0 && fav < N && !taken.has(fav)) s = fav;
       else {
