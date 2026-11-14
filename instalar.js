@@ -2,10 +2,11 @@
 // Instala herdr-twice desde donde esté clonado: mods por junction, temas y layout por copia,
 // los atajos de cada mod (mods/<mod>/keys.json) y los colores de agentes.
 // --solo galeria,twice-nine: solo esos mods y sus atajos, sin tocar tu layout ni tus temas.
-// Opcional: --galeria (regla @imagenN en ~/.claude/CLAUDE.md), --statusline (la de Claude Code) y
-// --cursor (hooks de Cursor CLI para que también tenga mascota).
+// Opcional: --galeria (regla @imagenN en ~/.claude/CLAUDE.md), --statusline (la de Claude Code),
+// --subagentes (hooks de Claude Code: sus subagentes salen como coristas) y --cursor (hooks de
+// Cursor CLI para que también tenga mascota).
 // Se puede repetir: solo cambia lo que falta y nunca pisa algo distinto sin --forzar.
-// Uso, dentro del clon: node instalar.js [--solo m1,m2] [--forzar] [--galeria] [--statusline] [--cursor]
+// Uso, dentro del clon: node instalar.js [--solo m1,m2] [--forzar] [--galeria] [--statusline] [--subagentes] [--cursor]
 'use strict';
 const fs = require('fs');
 const os = require('os');
@@ -21,6 +22,9 @@ const home = process.env.HERDR_APP_HOME || path.join(os.homedir(), '.config', 'h
 const COLORES = { working: '#d77757', blocked: '#e66464', done: '#78c88c' };
 const REGLA_GALERIA = '- Si el usuario menciona `@imagenN` (p. ej. `@imagen3`), lee `~/.config/herdr-app/galeria/imagenN.png` con Read (si se soltó otro formato, `imagenN.jpg`, `.gif`…): son las imágenes de la galería de herdr.';
 const STATUSLINE = 'node ~/.claude/statusline/statusline.js';
+const SUBAGENTES = 'node ~/.claude/subagentes/subagente.js';
+// Eventos de Claude Code que atiende subagentes/subagente.js (él decide qué hacer en cada uno).
+const HOOKS_SUBAGENTES = ['SubagentStart', 'SubagentStop', 'Stop', 'SessionStart', 'SessionEnd'];
 // Evento de Cursor → estado para herdr. Sin «te necesita»: Cursor no avisa cuando pide permiso.
 const HOOKS_CURSOR = { sessionStart: 'idle', beforeSubmitPrompt: 'working', stop: 'idle' };
 
@@ -125,6 +129,26 @@ if (opcion('--statusline')) {
   if (actual === STATUSLINE) ok('statusLine');
   else if (actual && !forzar) aviso(`ya hay otra statusLine («${actual}»); --forzar la cambia`);
   else { settings.statusLine = { type: 'command', command: STATUSLINE }; escribirJson(rutaSettings, settings); hecho('statusLine'); }
+}
+
+if (opcion('--subagentes')) {
+  console.log('Claude Code (subagentes como coristas):');
+  fs.mkdirSync(claude, { recursive: true });
+  enlazar(path.join(repo, 'subagentes'), path.join(claude, 'subagentes'), 'subagentes');
+  const rutaSettings = path.join(claude, 'settings.json');
+  const settings = leerJson(rutaSettings, {});
+  settings.hooks = settings.hooks || {};
+  let cambios = false;
+  for (const evento of HOOKS_SUBAGENTES) {
+    // Se añade un grupo propio al final: los hooks que ya tenga ese evento no se tocan.
+    const grupos = (settings.hooks[evento] = settings.hooks[evento] || []);
+    const nuestro = grupos.flatMap((g) => g.hooks || []).find((h) => h.command?.includes('subagente.js'));
+    if (nuestro?.command === SUBAGENTES && nuestro.async === true) ok(evento);
+    else if (nuestro && !forzar) aviso(`${evento}: ya hay un hook de subagente.js distinto («${nuestro.command}»); --forzar lo cambia`);
+    else if (nuestro) { nuestro.command = SUBAGENTES; nuestro.async = true; cambios = true; hecho(`${evento} (cambiado)`); }
+    else { grupos.push({ hooks: [{ type: 'command', command: SUBAGENTES, async: true }] }); cambios = true; hecho(evento); }
+  }
+  if (cambios) escribirJson(rutaSettings, settings);
 }
 
 if (opcion('--cursor')) {

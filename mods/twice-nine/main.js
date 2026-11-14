@@ -18,9 +18,11 @@ import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { panes, spaces, theme, run, props, shared, setShared, setAgentOrder, home, layout, nextCommand, openOverlay, closeOverlay } from "herdr";
 import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL, SLOTS, PREFS } from "./members.js";
-import { equipo, esperaA } from "./relaciones.js";
+import { equipo, esperaA, subagentes } from "./relaciones.js";
 
 const N = MEMBERS.length;
+// Coristas (subagentes) que caben dibujadas en una tarjeta; el resto se cuenta como «+n».
+const CORO = 4;
 // Los cuatro estados de un agente, más "sleep" para la mascota sin agente y "wait"
 // para la que espera a una hija (derivado en pose(), herdr no lo reporta).
 const STATES = new Set(["working", "blocked", "done", "idle", "sleep", "wait"]);
@@ -257,7 +259,17 @@ export default class TwiceNine extends View {
       .child(div().truncate().font_family(FONT).text_size(9.5).text_color(memberOf(slot).color).child(nameOf(slot)));
   }
 
-  card(t, slot, a, w, todos) {
+  // Las coristas de una líder: integrantes del banco, despiertas, una por subagente.
+  coro(t, slot, c) {
+    const resto = c.tipos.length - c.quienes.length;
+    return h_flex().gap(2).items_center().justify_center()
+      .children(c.quienes.map((i, k) => div().id(`coro-${slot}-${i}`).flex_none().tooltip(`${MEMBERS[i].name} · ${c.tipos[k]}`)
+        .child(sprite(MEMBERS[i].slug, "working", 18))))
+      .when(resto > 0, (el) => el.child(div().id(`coro-${slot}-mas`).flex_none().pl(2).text_size(10).text_color(t.muted)
+        .tooltip(c.tipos.slice(c.quienes.length).join(" · ")).child(`+${resto}`)));
+  }
+
+  card(t, slot, a, w, todos, coro) {
     const m = memberOf(slot);
     const slots = slotsNow();
     const detail = [a.program?.name, a.tab_name].filter(Boolean).join(" · ");
@@ -288,7 +300,8 @@ export default class TwiceNine extends View {
           .child(sprite(m.slug, st, 48))
           .child(div().max_w(w - 12).truncate().font_family(FONT).text_size(11).text_color(t.foreground).child(nameOf(slot)))
           .child(estado)
-          .child(pie)));
+          .child(pie)
+          .when(Boolean(coro), (el) => el.child(this.coro(t, slot, coro)))));
   }
 
   header(t, count, total) {
@@ -326,7 +339,16 @@ export default class TwiceNine extends View {
     colocar(null);
     if (props()?.order !== false) setAgentOrder(active.map((s) => bySlot.get(s).address));
     const out = new Set(active.map((s) => s % N));
-    const bench = MEMBERS.map((_m, i) => i).filter((i) => !out.has(i));
+    const libres = MEMBERS.map((_m, i) => i).filter((i) => !out.has(i));
+    // Cada subagente despierta a una del banco como corista de su líder (hasta CORO por
+    // tarjeta, y mientras queden); las que no caben o no alcanzan se cuentan como «+n».
+    const subs = subagentes();
+    const coros = new Map();
+    for (const s of active) {
+      const tipos = subs.get(bySlot.get(s).address);
+      if (tipos) coros.set(s, { tipos, quienes: libres.splice(0, Math.min(tipos.length, CORO)) });
+    }
+    const bench = libres;
     const width = this.size?.width ?? 268;
     const root = v_flex().id("root").size_full().text_size(13)
       .on_size_change((size, cx) => { this.size = size; cx.notify(); });
@@ -348,7 +370,7 @@ export default class TwiceNine extends View {
     return root
       .child(this.header(t, all.length, N))
       .child(v_flex().flex_1().min_h(0).px(8).pt(8).pb(8).gap(8).overflow_y_scrollbar()
-        .when(!big, (el) => el.child(h_flex().flex_wrap().gap(6).children(active.map((s) => this.card(t, s, bySlot.get(s), w, all)))))
+        .when(!big, (el) => el.child(h_flex().flex_wrap().gap(6).children(active.map((s) => this.card(t, s, bySlot.get(s), w, all, coros.get(s))))))
         .when(big, (el) => el.child(div().px(4).text_size(11.5).text_color(t.dim).child("Abre un agente y una de las nueve lo acompaña.")))
         .when(bench.length > 0, (el) => el.child(h_flex().flex_wrap().gap(big ? 8 : 5).px(2)
           .children(bench.map((i) => div().id(`bench-${i}`).flex_none().opacity(big ? 0.9 : 0.7).tooltip(`${MEMBERS[i].name} · dormida`)

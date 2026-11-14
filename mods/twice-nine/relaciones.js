@@ -32,6 +32,17 @@ export function equipo() {
   return lista;
 }
 
+// Los subagentes que cada sesión tiene abiertos ahora: dirección → sus tipos ("Explore"…).
+// Los apunta el hook subagentes/subagente.js como etiquetas twice.sub.<id>=<tipo>.
+export function subagentes() {
+  const mapa = new Map();
+  for (const t of terminals()) {
+    const tipos = Object.entries(t.labels ?? {}).filter(([k]) => k.startsWith("twice.sub.")).map(([, v]) => v);
+    if (tipos.length && t.state === "live") mapa.set(t.address, tipos);
+  }
+  return mapa;
+}
+
 export const hijasDe = (address, lista) => lista.filter((a) => a.madre === address);
 
 // La hija por la que espera: la primera que sigue trabajando o que necesita al usuario.
