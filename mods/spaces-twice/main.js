@@ -82,9 +82,31 @@ export default class Spaces extends View {
     for (const state of Object.values(this.reconnecting)) state.busy = false;
     this.folded = new Set(JSON.parse(localStorage.getItem("machines.folded") ?? "[]"));
     this.refreshMachines(cx);
-    cx.timer.every(15000, cx => this.refreshMachines(cx));
-    // Refresh only when the refs could have changed (see `due`).
-    cx.timer.every(250, (cx) => this.checkNew(cx));
+    // Nothing runs fast: render() runs again whenever spaces, panes, agents or focus
+    // change (herdr's live data) and looks there for what `due` finds (sync); a
+    // one-shot timer (wake) covers only the 1 s waits of a new space. This slow tick
+    // is for what herdr can't announce: the 60 s git fallback (FALLBACK, seen at this
+    // granularity) and `hc machine ls`, spawned only when a remote machine exists.
+    cx.timer.every(15000, (cx) => {
+      if (window().active && (this.machines.length || machines().some((m) => m.name))) this.refreshMachines(cx);
+      this.checkNew(cx);
+    });
+  }
+
+  // From render: look at what changed (no notify: render is already running).
+  sync(cx) {
+    const sp = spaces();
+    const now = Date.now();
+    for (const s of sp) if (!this.shown.has(s.id)) this.born[s.id] ??= now;
+    const due = this.due(now, sp, panes());
+    if (due.size) this.refreshGit(due, cx);
+  }
+
+  // A new space waits at most 1.5 s for its git, and a move is retried after 1 s:
+  // one short timer only while one of those is pending, none otherwise.
+  wake(cx) {
+    if (this.waking || !(this.ordering || spaces().some((s) => !this.shown.has(s.id)))) return;
+    this.waking = cx.timer.after(1000, (cx) => { this.waking = null; this.checkNew(cx); });
   }
 
   checkNew(cx) {
@@ -509,7 +531,9 @@ export default class Spaces extends View {
   render(cx) {
     const t = theme();
     const collapsed = narrow();
+    this.sync(cx);
     this.ajustarAltura(cx, collapsed);
+    this.wake(cx);
     const palette = ["ansi6", "ansi3", "ansi4", "ansi5", "ansi2", "ansi1"];
     const sp = spaces();
     const ids = new Set(sp.map(p => p.id));
