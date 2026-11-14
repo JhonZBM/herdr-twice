@@ -18,6 +18,8 @@ images.
   Dropping files on the panel copies them in. If the block is hidden, pasting shows it.
 - Click a thumbnail: large preview (`←` `→` browse, `Enter` inserts `@imagenN`, `Esc` closes). `Alt+G`
   opens the last one. "@ insertar" types `@imagenN ` into the focused terminal.
+- The small **×** over a thumbnail deletes just that image (and its display copy) from the folder, with
+  no confirmation and without touching the other numbers.
 - Limpiar asks first, empties the gallery and numbering starts again at 1.
 
 ## Built from

@@ -10,7 +10,7 @@ su estado, más una galería de imágenes para Claude Code y una statusline de C
 - **twice-nine**: una mascota por agente (trabajando, te necesita, listo, en espera, dormida). Las libres
   duermen en la banca. `Alt+T` elige integrante; la elección se recuerda por espacio.
 - **spaces-twice**: la lista de espacios, con la mascota de su agente como avatar.
-- **galeria**: `Ctrl+Shift+V` guarda una captura como `@imagenN`; escribe `@imagen3` en Claude Code para usarla.
+- **galeria**: `Ctrl+Shift+V` guarda una captura como `@imagenN`; escribe `@imagen3` en Claude Code para usarla. Una pequeña × en cada miniatura borra esa imagen.
 - **nombre-agente**: los espacios sin nombre toman el título de su agente; `Ctrl+Shift+M` abre Claude en una carpeta.
 - **statusline**: modelo, esfuerzo, rama, contexto y límites de uso en una línea.
 - **Cursor CLI**: un lanzador mínimo y hooks para que los agentes de Cursor también tengan mascota.

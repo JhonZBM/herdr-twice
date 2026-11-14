@@ -10,7 +10,7 @@ status, plus an image gallery for Claude Code and a matching Claude Code status 
 - **twice-nine**: one mascot per agent (working, needs you, done, waiting, asleep). Free members sleep on
   the bench. `Alt+T` picks a member; the choice is remembered per space.
 - **spaces-twice**: the spaces list, with each agent's mascot as avatar.
-- **galeria**: `Ctrl+Shift+V` saves a screenshot as `@imagenN`; write `@imagen3` in Claude Code to use it.
+- **galeria**: `Ctrl+Shift+V` saves a screenshot as `@imagenN`; write `@imagen3` in Claude Code to use it. A small × on each thumbnail deletes that image.
 - **nombre-agente**: unnamed spaces take their agent's title; `Ctrl+Shift+M` opens Claude in a folder.
 - **statusline**: model, effort, branch, context and usage limits in one line.
 - **Cursor CLI**: a tiny launcher and hooks so Cursor agents get a mascot too.

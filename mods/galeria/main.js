@@ -8,6 +8,7 @@
 //   inserta, Esc cierra). Es este mismo mod abierto como diálogo (props().ver).
 // - Botón "@" de la miniatura (o Enter en la vista previa): escribe "@imagenN "
 //   en el terminal enfocado.
+// - "×" sobre la miniatura: borra solo esa imagen (sin confirmar).
 // - Limpiar: pide confirmación (mod confirm) y vacía la carpeta.
 // PowerShell solo corre al pegar, soltar o insertar (una llamada por acción);
 // nunca al dibujar, ver o limpiar.
@@ -254,6 +255,24 @@ export default class Galeria extends View {
     });
   }
 
+  // Borra una sola imagen (la original y sus copias para mostrar <n>-*).
+  // Sin confirmación: es un solo archivo y el botón es pequeño y distinto de Limpiar.
+  eliminar(img, cx) {
+    const nombre = img.ruta.split("\\").pop();
+    this.borradas = new Set([...(this.borradas ?? []), nombre]);
+    this.imagenes = this.imagenes.filter((i) => i.n !== img.n);
+    cx.notify();
+    cx.spawn(async (cx) => {
+      try { await fs.unlink(img.ruta); } catch {}
+      let copias = [];
+      try { copias = await fs.readdir(VISTA); } catch {}
+      for (const c of copias) {
+        if (COPIA.exec(c)?.[1] === String(img.n)) { try { await fs.unlink(`${VISTA}\\${c}`); } catch {} }
+      }
+      cx.notify();
+    });
+  }
+
   render(cx) {
     if (props()?.ver) return this.vista();
     const t = theme();
@@ -273,7 +292,7 @@ export default class Galeria extends View {
       .child(div().text_color(t.muted).child("Ctrl+Shift+V pega una captura; también puedes soltar archivos aquí"));
 
     const tarjeta = (img) =>
-      v_flex().id(`img-${img.n}`).gap(4).p(6).rounded(8).border_1().border_color(t.border).bg(t.background)
+      v_flex().id(`img-${img.n}`).relative().gap(4).p(6).rounded(8).border_1().border_color(t.border).bg(t.background)
         .cursor_pointer().hover((s) => s.border_color(t.accent))
         .tooltip("Clic: ver en grande · @: insertar en el prompt")
         .on_click(() => this.abrirVista(img))
@@ -283,7 +302,13 @@ export default class Galeria extends View {
           .child(h_flex().id(`ins-${img.n}`).h(22).px(8).items_center().rounded(5).cursor_pointer()
             .bg(t.raised).text_color(t.foreground).hover((s) => s.bg(t.hover))
             .on_click((_e, cx) => { cx.stop_propagation(); this.insertar(img.n, cx); })
-            .child("@ insertar")));
+            .child("@ insertar")))
+        .child(h_flex().id(`del-${img.n}`).absolute().top(10).right(10).size(18).items_center().justify_center()
+          .rounded(9).cursor_pointer().text_size(12).bg(t.raised).text_color(t.muted)
+          .hover((s) => s.bg(t.hover).text_color(t.foreground))
+          .tooltip(`Eliminar @imagen${img.n}`)
+          .on_click((_e, cx) => { cx.stop_propagation(); this.eliminar(img, cx); })
+          .child("×"));
 
     return v_flex().id("galeria").size_full().bg(t.surface).rounded(10).border_1().border_color(t.border)
       .on_drop((e, cx) => this.soltar(e.paths ?? [], cx))
