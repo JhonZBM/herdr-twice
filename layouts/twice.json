@@ -175,16 +175,41 @@
               "hidden": true
             },
             {
-              "id": "galeria",
-              "type": "block",
-              "content": {
-                "mod": "galeria"
-              },
+              "id": "derecha",
+              "type": "column",
               "size": {
                 "px": 260
               },
-              "min": 200,
-              "max": 480
+              "min": 260,
+              "max": 480,
+              "gap": 8,
+              "children": [
+                {
+                  "id": "galeria",
+                  "type": "block",
+                  "content": {
+                    "mod": "galeria"
+                  },
+                  "size": {
+                    "weight": 1
+                  },
+                  "min": 120
+                },
+                {
+                  "id": "escenario",
+                  "type": "block",
+                  "content": {
+                    "mod": "twice-nine",
+                    "props": {
+                      "escenario": true
+                    }
+                  },
+                  "size": {
+                    "px": 330
+                  },
+                  "resizable": false
+                }
+              ]
             }
           ],
           "padding": 8,

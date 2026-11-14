@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 330" width="260" height="330" shape-rendering="crispEdges">
+<!-- Fondo del escenario de twice-nine (panel de 260×330). De arriba abajo, como lo usa escenario.js:
+     y0-12 bambalinón · y12-32 sobretítulos · y32-116 bambalinas (izq.) y camerino (der.) ·
+     y116-286 tablado con el micrófono · y286-294 canto · y294-330 primera fila (nueve butacas).
+     El marco va en vino: el magenta #ff5fa2 se guarda para «te necesita»; el albaricoque #fcc89b, para el canto. -->
+<rect width="260" height="330" fill="#1a121f"/>
+<rect width="260" height="12" fill="#8f2a5c"/>
+<rect width="260" height="2" fill="#a83068"/>
+<rect y="12" width="260" height="20" fill="#120c16"/>
+<!-- bambalinas -->
+<rect y="32" width="130" height="84" fill="#150e19"/>
+<rect y="96" width="130" height="20" fill="#20151f"/>
+<path fill="#2b1d30" d="M98 72h28v24h-28zM110 56h16v16h-16z"/>
+<path fill="#3a2433" d="M98 72h28v2h-28zM110 56h16v2h-16zM111 74h2v22h-2z"/>
+<!-- camerino: espejo con bombillas y sofá -->
+<rect x="130" y="32" width="130" height="84" fill="#241a2a"/>
+<rect x="130" y="96" width="130" height="20" fill="#2e2030"/>
+<rect x="128" y="32" width="3" height="84" fill="#3a2433"/>
+<rect x="172" y="36" width="44" height="22" fill="#fcc89b"/>
+<rect x="174" y="38" width="40" height="18" fill="#3b3350"/>
+<path fill="#4d4468" d="M178 40h6v14h-6zM188 40h2v14h-2z"/>
+<path fill="#fff1e0" d="M166 37h3v3h-3zM166 45h3v3h-3zM166 53h3v3h-3zM219 37h3v3h-3zM219 45h3v3h-3zM219 53h3v3h-3z"/>
+<rect x="138" y="70" width="116" height="26" fill="#6b2c5a"/>
+<rect x="138" y="70" width="116" height="2" fill="#a8488c"/>
+<path fill="#8a3a73" d="M134 78h6v20h-6zM252 78h6v20h-6z"/>
+<rect x="138" y="96" width="116" height="3" fill="#4a2040"/>
+<!-- tablado -->
+<rect y="116" width="260" height="34" fill="#2a1830"/>
+<path fill="#331d3a" d="M24 116h10v34h-10zM60 116h10v34h-10zM96 116h10v34h-10zM154 116h10v34h-10zM190 116h10v34h-10zM226 116h10v34h-10z"/>
+<rect y="150" width="260" height="136" fill="#2e2233"/>
+<path fill="#382a3e" d="M0 150h260v2h-260zM0 184h260v2h-260zM0 220h260v2h-260zM0 254h260v2h-260z"/>
+<path fill="#261b2b" d="M70 152h2v32h-2zM186 152h2v32h-2zM128 186h2v34h-2zM54 222h2v32h-2zM204 222h2v32h-2zM128 256h2v30h-2z"/>
+<path fill="#fcc89b" fill-opacity=".04" d="M56 118h20l44 168h-108zM184 118h20l44 168h-108z"/>
+<rect y="112" width="260" height="6" fill="#3a2433"/>
+<path fill="#fff1e0" d="M62 114h8v4h-8zM126 114h8v4h-8zM190 114h8v4h-8z"/>
+<path fill="#7a2450" d="M0 118h10v168h-10zM250 118h10v168h-10z"/>
+<path fill="#932d5e" d="M3 118h2v168h-2zM255 118h2v168h-2z"/>
+<!-- micrófono -->
+<path fill="#cfc6d0" d="M129 240h2v40h-2zM123 280h14v2h-14z"/>
+<rect x="126" y="230" width="8" height="11" fill="#3a2433"/>
+<rect x="127" y="231" width="6" height="5" fill="#fff1e0"/>
+<!-- canto y primera fila -->
+<rect y="286" width="260" height="6" fill="#fcc89b"/>
+<rect y="292" width="260" height="2" fill="#b98463"/>
+<rect y="294" width="260" height="36" fill="#120c16"/>
+<path fill="#3a1830" d="M13 308h22v18h-22zM39 308h22v18h-22zM65 308h22v18h-22zM91 308h22v18h-22zM117 308h22v18h-22zM143 308h22v18h-22zM169 308h22v18h-22zM195 308h22v18h-22zM221 308h22v18h-22z"/>
+<path fill="#5a2548" d="M13 308h22v2h-22zM39 308h22v2h-22zM65 308h22v2h-22zM91 308h22v2h-22zM117 308h22v2h-22zM143 308h22v2h-22zM169 308h22v2h-22zM195 308h22v2h-22zM221 308h22v2h-22z"/>
+</svg>

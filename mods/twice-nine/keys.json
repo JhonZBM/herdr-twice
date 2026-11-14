@@ -1,6 +1,7 @@
 {
   "global": {
     "alt-t": "twice-nine.elegir",
-    "alt-shift-t": "twice-nine.siguiente"
+    "alt-shift-t": "twice-nine.siguiente",
+    "alt-r": "layout.toggle:escenario"
   }
 }

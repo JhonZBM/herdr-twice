@@ -12,6 +12,8 @@
 // Comando "twice-nine.siguiente": pasa el agente enfocado a la siguiente
 // integrante libre, sin abrir nada. Clic derecho en una tarjeta (o en la
 // mascota del riel) de la barra lateral: el selector junto al puntero.
+//   - escenario (props().escenario): un panel donde las mascotas se colocan según su
+//     estado (escenario.js). Alt+R lo muestra u oculta con layout.toggle, sin código propio.
 // Solo texto, color y sprites propios; sin logo ni imagenes oficiales.
 
 import { View, div, svg, image } from "gpui-kit";
@@ -19,6 +21,7 @@ import { v_flex, h_flex } from "gpui-base";
 import { panes, spaces, theme, run, props, shared, setShared, setAgentOrder, home, layout, nextCommand, openOverlay, closeOverlay } from "herdr";
 import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL, SLOTS, PREFS } from "./members.js";
 import { equipo, esperaA, subagentes } from "./relaciones.js";
+import { escenario } from "./escenario.js";
 
 const N = MEMBERS.length;
 // Coristas (subagentes) que caben dibujadas en una tarjeta; el resto se cuenta como «+n».
@@ -157,6 +160,7 @@ export default class TwiceNine extends View {
   init(_props, cx) {
     this.size = null;
     this.hovered = false;
+    if (props()?.escenario) return;
     if (props()?.elegir) {
       const cur = slotsNow()[props().elegir];
       this.sel = Number.isInteger(cur) ? cur % N : 0;
@@ -487,6 +491,7 @@ export default class TwiceNine extends View {
   }
 
   render(cx) {
+    if (props()?.escenario) return escenario({ sprite, pose, memberOf, nameOf, slotsNow, limpio });
     if (props()?.elegir) return this.selector();
     return props()?.pane ? this.pane() : this.list(cx);
   }
