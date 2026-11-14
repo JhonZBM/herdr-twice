@@ -90,6 +90,11 @@ Icons, colors, thresholds and spacing live in `statusline/iconos.json` (no code 
 Zero dependencies (only Node and git), one file per piece, no build. herdr and Claude Code first. Light in
 size and in resources too: no polling, few processes.
 
+- No `setInterval`/`setTimeout` and no `cx.timer.every` if an event (`watchFolder`, herdr's live data) can replace it; if a
+  timer is unavoidable: period ≥ 1 s, with a comment saying why. Every `exec`/`spawn` is one-off.
+- Targets: repo ≤ 1 MB; each SVG ≤ 4 KB; each PNG ≤ 100 KB (root `preview.png` ≤ 150 KB); each `main.js` ≤ 25 KB.
+- No absolute paths (drive, user) in what is versioned.
+
 ## License
 
 Code: MIT. Silkscreen font: SIL OFL (`mods/twice-nine/fonts/OFL.txt`). The sprites are original pixel art,

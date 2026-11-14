@@ -94,6 +94,11 @@ Opus 5.5  ✦ medio    ▸ repo    main  ·  3 cambios    ⇡ 1    ▰▰▰▰�
 Cero dependencias (solo Node y git), un archivo por pieza, sin build. Primero lo que ya traen herdr y Claude
 Code. Ligero también en recursos: nada que sondee, pocos procesos.
 
+- Nada de `setInterval`/`setTimeout` ni `cx.timer.every` si un evento (`watchFolder`, los datos vivos de herdr) lo
+  sustituye; si un temporizador es inevitable: periodo ≥ 1 s y un comentario que lo justifique. Cada `exec`/`spawn` es puntual.
+- Objetivos: repo ≤ 1 MB; cada SVG ≤ 4 KB; cada PNG ≤ 100 KB (`preview.png` raíz ≤ 150 KB); cada `main.js` ≤ 25 KB.
+- Sin rutas absolutas (disco, usuario) en lo versionado.
+
 ## Licencia
 
 Código: MIT. Fuente Silkscreen: SIL OFL (`mods/twice-nine/fonts/OFL.txt`). Los sprites son pixel art
