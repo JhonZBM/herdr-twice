@@ -2,8 +2,10 @@
 // Demo guiada para grabar o capturar: abre tres espacios con agentes falsos (agente-falso.js) y
 // recorre los estados con pausas: trabajando, te necesita, madre e hija, coristas y listo.
 // No usa ningún agente de verdad: solo `herdr-app do` y `hc`, uno por paso.
-// Uso (con herdr abierto y el layout twice): node demo/presentacion.js [--pausa 3] [--dejar]
+// Uso (con herdr abierto y el layout twice): node demo/presentacion.js [--pausa 3] [--dejar] [--captura f.png]
 //   --pausa N  segundos entre pasos (por defecto 3)
+//   --captura F  no recorre el guion: monta una escena con todos los estados a la vez, guarda la
+//              ventana en F (para preview.png) y cierra
 //   --dejar    no cierra los espacios al terminar (para hacer capturas con calma)
 // Lánzalo desde una terminal de fuera de herdr y graba la ventana (en Windows, Win+Shift+R).
 'use strict';
@@ -15,6 +17,8 @@ const falso = `${repo}/demo/agente-falso.js`;
 const iPausa = process.argv.indexOf('--pausa');
 const pausa = (iPausa > 0 ? Number(process.argv[iPausa + 1]) : 3) || 3;
 const dejar = process.argv.includes('--dejar');
+const iCaptura = process.argv.indexOf('--captura');
+const captura = iCaptura > 0 ? path.resolve(process.argv[iCaptura + 1] || 'preview.png') : null;
 
 const correr = (bin, args) => execFileSync(bin, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
 const herdr = (comando, datos = {}) => JSON.parse(correr('herdr-app', ['do', comando, JSON.stringify(datos)]) || '{}');
@@ -57,6 +61,20 @@ async function main() {
     const web = await abrir('web');
     const docs = await abrir('docs');
     await esperar();
+
+    if (captura) {
+      decir('Foto: una espera a su hija, otra te necesita y otra trabaja con coristas');
+      tecla(api.terminal, 'h');
+      const hija = await hasta(() => terminales().find((t) => t.parent === api.terminal && t.status));
+      tecla(hija.address, 'w');
+      tecla(web.terminal, 'b');
+      tecla(docs.terminal, 'w', 's', 's');
+      ver(web); // la que te necesita, a la vista: si no, herdr tapa la escena con su aviso
+      await esperar(10); // que acaben las transiciones y se vaya el aviso «needs you» de herdr, que tapa la escena
+      correr('herdr-app', ['shot', captura]);
+      decir(`Captura guardada en ${captura}`);
+      return;
+    }
 
     decir('Trabajando: pasean por el tablado');
     ver(api); tecla(api.terminal, 'w'); tecla(web.terminal, 'w');

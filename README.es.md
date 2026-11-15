@@ -101,7 +101,7 @@ Opus 5.5  ✦ medio    ▸ repo    main  ·  3 cambios    ⇡ 1    ▰▰▰▰�
 - Para probar las mascotas sin un agente de verdad: `herdr-app do tab.new --name demo --argv '["node","demo/agente-falso.js"]'`
   y luego `hc keys <t> w` (`w` `b` `d` `i` estado, `h` hija, `s`/`S` subagente, `q` salir).
 - Una demo guiada para grabar o capturar, sin agentes de verdad: `node demo/presentacion.js` desde una terminal de fuera de
-  herdr (`--pausa 3` segundos por paso, `--dejar` deja los espacios abiertos). Abre tres espacios con agentes falsos,
+  herdr (`--pausa 3` segundos por paso, `--dejar` deja los espacios abiertos, `--captura preview.png` solo monta una escena con todos los estados y guarda la ventana). Abre tres espacios con agentes falsos,
   recorre todos los estados y los cierra. Cierra antes tus sesiones si no quieres que salgan en la grabación.
 - Para ver un cambio en un mod: `herdr-app do layout.switch --name main` y luego `--name twice`.
 - Para construirlo desde cero: [RECIPE.md](RECIPE.md).

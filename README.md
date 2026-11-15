@@ -98,7 +98,7 @@ Icons, colors, thresholds and spacing live in `statusline/iconos.json` (no code 
 - To try the mascots without a real agent: `herdr-app do tab.new --name demo --argv '["node","demo/agente-falso.js"]'`,
   then `hc keys <t> w` (`w` `b` `d` `i` status, `h` child, `s`/`S` subagent, `q` quit).
 - A guided demo to record or screenshot, with no real agents: `node demo/presentacion.js` from a terminal outside herdr
-  (`--pausa 3` seconds per step, `--dejar` keeps the spaces open). It opens three spaces with fake agents, walks through
+  (`--pausa 3` seconds per step, `--dejar` keeps the spaces open, `--captura preview.png` just sets up one scene with every status and saves the window). It opens three spaces with fake agents, walks through
   every status and closes them. Close your own sessions first if you don't want them in the recording.
 - To see a change made to a mod: `herdr-app do layout.switch --name main`, then `--name twice`.
 - Rebuild it from scratch: [RECIPE.md](RECIPE.md).
