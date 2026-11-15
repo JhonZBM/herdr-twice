@@ -1,5 +1,5 @@
 // TWICE Nine: cada agente va acompanado por una mascota original, una por
-// integrante. Dos papeles en un mismo mod:
+// integrante. Cuatro papeles en un mismo mod (lista, cabecera, selector y escenario):
 //   - bloque del sidebar: tarjetas ("photocards") de los agentes abiertos y
 //     una banca con el resto de las mascotas, dormidas (z z z) mientras
 //     ningún agente las usa; la de un agente en espera que no estás mirando
@@ -20,12 +20,10 @@ import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { panes, spaces, theme, run, props, shared, setShared, setAgentOrder, home, layout, nextCommand, openOverlay, closeOverlay } from "herdr";
 import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL, SLOTS, PREFS } from "./members.js";
-import { equipo, esperaA, subagentes } from "./relaciones.js";
+import { equipo, esperaA, enOrden, repartirCoros } from "./relaciones.js";
 import { escenario } from "./escenario.js";
 
 const N = MEMBERS.length;
-// Coristas (subagentes) que caben dibujadas en una tarjeta; el resto se cuenta como «+n».
-const CORO = 4;
 // Los cuatro estados de un agente, más "sleep" para la mascota sin agente y "wait"
 // para la que espera a una hija (derivado en pose(), herdr no lo reporta).
 const STATES = new Set(["working", "blocked", "done", "idle", "sleep", "wait"]);
@@ -124,7 +122,9 @@ function asignar(address, i) {
   slots[address] = i;
   setShared(SLOTS, slots);
   // Recordarla para el espacio del agente (y olvidar espacios que ya no existen).
-  const space = equipo().find((a) => a.address === address)?.space;
+  // Una hija sin panel lleva prestado el espacio de su madre: no decide por él.
+  const quien = equipo().find((a) => a.address === address);
+  const space = quien?.pane ? quien.space : null;
   if (!space) return;
   const ids = new Set(spaces().map((x) => x.id));
   const prefs = Object.fromEntries(Object.entries(prefsNow()).filter(([k]) => ids.has(k)));
@@ -323,36 +323,9 @@ export default class TwiceNine extends View {
     const t = theme();
     const all = equipo();
     const slots = slotsNow();
-    const bySlot = new Map();
-    for (const a of all) {
-      const s = slots[a.address];
-      if (Number.isInteger(s) && !bySlot.has(s)) bySlot.set(s, a);
-    }
-    // Por puesto, y cada hija justo después de su madre.
-    const porPuesto = [...bySlot.keys()].sort((x, y) => x - y);
-    const vivos = new Set(porPuesto.map((s) => bySlot.get(s).address));
-    const active = [];
-    const colocar = (madre) => {
-      for (const s of porPuesto) {
-        const a = bySlot.get(s);
-        if ((vivos.has(a.madre) ? a.madre : null) !== madre) continue;
-        active.push(s);
-        colocar(a.address);
-      }
-    };
-    colocar(null);
+    const { bySlot, active } = enOrden(all, slots);
     if (props()?.order !== false) setAgentOrder(active.map((s) => bySlot.get(s).address));
-    const out = new Set(active.map((s) => s % N));
-    const libres = MEMBERS.map((_m, i) => i).filter((i) => !out.has(i));
-    // Cada subagente despierta a una del banco como corista de su líder (hasta CORO por
-    // tarjeta, y mientras queden); las que no caben o no alcanzan se cuentan como «+n».
-    const subs = subagentes();
-    const coros = new Map();
-    for (const s of active) {
-      const tipos = subs.get(bySlot.get(s).address);
-      if (tipos) coros.set(s, { tipos, quienes: libres.splice(0, Math.min(tipos.length, CORO)) });
-    }
-    const bench = libres;
+    const { coros, libres: bench } = repartirCoros(active, bySlot, N);
     const width = this.size?.width ?? 268;
     const root = v_flex().id("root").size_full().text_size(13)
       .on_size_change((size, cx) => { this.size = size; cx.notify(); });
@@ -388,7 +361,8 @@ export default class TwiceNine extends View {
     if (!p) return div();
     const slot = p.terminal ? slotsNow()[p.terminal] : undefined;
     const mine = Number.isInteger(slot) && Boolean(p.status);
-    const program = ((p.program?.agent || p.program?.shell) && p.program.name) || p.title || p.program?.name || "shell";
+    const todos = mine ? equipo() : [];
+    const program =((p.program?.agent || p.program?.shell) && p.program.name) || p.title || p.program?.name || "shell";
     const st = p.status;
     const pane = p.pane;
     const bottom = paneFrame(layout())?.header?.position === "bottom";
@@ -407,7 +381,7 @@ export default class TwiceNine extends View {
       .when(mine, (el) => el
         .child(div().id(`ph-m-${pane}`).flex_none().cursor_pointer().tooltip("Elegir integrante")
           .on_click((_e, cx) => { cx.stop_propagation(); abrirSelector(p.terminal, "popup"); })
-          .child(sprite(memberOf(slot).slug, pose(equipo().find((x) => x.address === p.terminal) ?? { status: st, focused: true }), 22)))
+          .child(sprite(memberOf(slot).slug, pose(todos.find((x) => x.address === p.terminal) ?? { status: st, focused: true }, todos), 22)))
         .child(div().flex_none().font_family(FONT).text_size(10.5).text_color(memberOf(slot).color).child(nameOf(slot))))
       .when(!mine && Boolean(pic), (el) => el.child(pic))
       .child(div().flex_none().truncate().max_w(260).font_medium().text_color(t.foreground).child(program))
@@ -440,7 +414,7 @@ export default class TwiceNine extends View {
     const tarjeta = (m, i) => {
       const esActual = i === actual, foco = i === this.sel, otro = duena(i);
       // La libre duerme; la que tiene otro agente espera despierta; la resaltada baila.
-      const postura = esActual ? pose(a) : foco ? "working" : otro ? "idle" : "sleep";
+      const postura = esActual ? pose(a, all) : foco ? "working" : otro ? "idle" : "sleep";
       const nota = esActual ? "actual" : otro ? `con ${quien(otro)}` : "libre";
       // La franja de color es el fondo de la propia tarjeta (redondeada). Encima,
       // 3 px más abajo y con el mismo radio, una capa opaca (popover) tapa el resto:

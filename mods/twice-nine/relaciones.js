@@ -48,3 +48,45 @@ export const hijasDe = (address, lista) => lista.filter((a) => a.madre === addre
 // La hija por la que espera: la primera que sigue trabajando o que necesita al usuario.
 export const esperaA = (address, lista) =>
   hijasDe(address, lista).find((h) => h.status === "working" || h.status === "blocked") ?? null;
+
+// Coristas que caben dibujadas junto a su líder; el resto se cuenta como «+n».
+export const CORO = 4;
+
+// Los agentes con puesto, en el orden de las tarjetas: por puesto, y cada hija justo después
+// de su madre. `bySlot`: puesto → agente; `active`: los puestos en ese orden.
+export function enOrden(lista, slots) {
+  const bySlot = new Map();
+  for (const a of lista) {
+    const s = slots[a.address];
+    if (Number.isInteger(s) && !bySlot.has(s)) bySlot.set(s, a);
+  }
+  const porPuesto = [...bySlot.keys()].sort((x, y) => x - y);
+  const vivos = new Set(porPuesto.map((s) => bySlot.get(s).address));
+  const active = [];
+  const colocar = (madre) => {
+    for (const s of porPuesto) {
+      const a = bySlot.get(s);
+      if ((vivos.has(a.madre) ? a.madre : null) !== madre) continue;
+      active.push(s);
+      colocar(a.address);
+    }
+  };
+  colocar(null);
+  return { bySlot, active };
+}
+
+// Cada subagente despierta a una integrante libre como corista de su líder (hasta CORO por
+// líder, y mientras queden); las que no caben o no alcanzan se cuentan como «+n». Un solo
+// reparto para la barra y el escenario: la misma corista en los dos. `n`: integrantes.
+// Devuelve `coros` (puesto → { tipos, quienes }) y `libres` (las que siguen sin nadie).
+export function repartirCoros(active, bySlot, n) {
+  const fuera = new Set(active.map((s) => s % n));
+  const libres = Array.from({ length: n }, (_x, i) => i).filter((i) => !fuera.has(i));
+  const subs = subagentes();
+  const coros = new Map();
+  for (const s of active) {
+    const tipos = subs.get(bySlot.get(s).address);
+    if (tipos) coros.set(s, { tipos, quienes: libres.splice(0, Math.min(tipos.length, CORO)) });
+  }
+  return { coros, libres };
+}

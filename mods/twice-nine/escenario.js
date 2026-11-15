@@ -11,11 +11,11 @@ import { div, image } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { theme, run } from "herdr";
 import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL } from "./members.js";
-import { equipo, esperaA, subagentes } from "./relaciones.js";
+import { equipo, esperaA, enOrden, repartirCoros } from "./relaciones.js";
 
 // La escena tiene tamaño fijo, el del dibujo; si el panel es más ancho, se centra.
 const ANCHO = 260, ALTO = 330;
-const T = 40, GRANDE = 48, MINI = 22, PASEO = 12, CORO = 3;
+const T = 40, GRANDE = 48, MINI = 22, PASEO = 12;
 const TINTA = "#1a121f", SOMBRA = "#120c16";
 // Sitios de cada zona: la esquina de la mascota, en px del dibujo.
 const ZONA = {
@@ -23,9 +23,10 @@ const ZONA = {
   blocked: [[136, 222], [70, 222], [190, 222]],
   done: [[14, 230], [206, 230], [56, 232], [166, 232]],
   wait: [[14, 56], [70, 56]],
-  idle: [[142, 56], [200, 56]],
+  idle: [[142, 56], [200, 56], [171, 50]],
 };
-ZONA.sleep = ZONA.idle;
+// En espera y dormida comparten camerino: se cuentan juntas para no pisarse.
+const zonaDe = (st) => (st === "sleep" || !ZONA[st] ? "idle" : st);
 const butaca = (i) => 13 + i * 26;
 
 const ir = (a) => (a.pane ? run("agent.focus", { terminal: a.address }) : run("terminal.peek", { terminal: a.address }));
@@ -34,20 +35,27 @@ export function escenario(k) {
   const t = theme();
   const todos = equipo();
   const slots = k.slotsNow();
-  const subs = subagentes();
   const nombre = (a) => k.nameOf(slots[a.address]);
   const color = (a) => k.memberOf(slots[a.address]).color;
-  const conPuesto = todos.filter((a) => Number.isInteger(slots[a.address]));
-  const libres = MEMBERS.map((_m, i) => i).filter((i) => !conPuesto.some((a) => slots[a.address] % MEMBERS.length === i));
+  // El mismo orden y el mismo reparto de coristas que las tarjetas de la barra.
+  const { bySlot, active } = enOrden(todos, slots);
+  const conPuesto = active.map((s) => bySlot.get(s));
+  const { coros, libres } = repartirCoros(active, bySlot, MEMBERS.length);
+
+  // La hija por la que espera, si ya tiene integrante (recién lanzada aún no: el reparto
+  // va en una tarea posterior al render).
+  const hijaConPuesto = (a) => { const h = esperaA(a.address, todos); return h && Number.isInteger(slots[h.address]) ? h : null; };
 
   const usados = {};
   const actores = conPuesto.map((a) => {
     const st = k.pose(a, todos);
-    const sitios = ZONA[st] ?? ZONA.idle;
-    const n = (usados[st] = (usados[st] ?? 0) + 1) - 1;
-    // Si la zona se llena, las siguientes repiten sitio un poco desplazadas.
+    const zona = zonaDe(st);
+    const sitios = ZONA[zona];
+    const n = (usados[zona] = (usados[zona] ?? 0) + 1) - 1;
+    // Si la zona se llena, las siguientes repiten sitio un poco desplazadas (hasta dos
+    // vueltas: más allá se saldrían de la zona, así que se apilan).
     const [x, y] = sitios[n % sitios.length];
-    const vuelta = Math.floor(n / sitios.length) * 8;
+    const vuelta = Math.min(Math.floor(n / sitios.length), 2) * 8;
     return { a, slot: slots[a.address], st, x: x + vuelta, y: y - vuelta };
   });
 
@@ -70,8 +78,8 @@ export function escenario(k) {
     const [d] = de("done");
     if (d) return linea(d, SOMBRA, APRICOT, [pixel(d).text_color(color(d)), resto(`¡listo!${tarea(d)}`)]);
     const [w] = de("wait");
-    const hija = w && esperaA(w.address, todos);
-    if (w) return linea(w, SOMBRA, t.muted, [pixel(w).text_color(color(w)), resto("espera a"), ...(hija ? [pixel(hija).text_color(color(hija))] : [resto("otra sesión")])]);
+    const hija = w && hijaConPuesto(w);
+    if (w) return linea(w, SOMBRA, t.muted, [pixel(w).text_color(color(w)), resto(LABEL.wait), ...(hija ? [pixel(hija).text_color(color(hija))] : [resto("otra sesión")])]);
     return conPuesto.length ? null : linea(null, SOMBRA, t.dim, [resto("nadie en escena")]);
   };
 
@@ -79,7 +87,8 @@ export function escenario(k) {
     const { a, slot, st } = p;
     const m = k.memberOf(slot);
     const lado = st === "blocked" ? GRANDE : T; // la que te necesita, más grande: es la que hay que ver
-    const coro = (subs.get(a.address) ?? []).slice(0, Math.min(CORO, libres.length)).map(() => libres.shift());
+    const coro = coros.get(slot) ?? { tipos: [], quienes: [] };
+    const mas = coro.tipos.length - coro.quienes.length;
     const cuerpo = div().absolute().w(lado).h(lado + 12)
       .child(div().absolute().top(lado - 2).left(Math.round(lado / 2) - 12).w(24).h(3).bg(SOMBRA).opacity(0.6))
       .child(k.sprite(m.slug, st, lado))
@@ -89,15 +98,18 @@ export function escenario(k) {
       : st === "blocked" ? cuerpo.left(PASEO / 2).loop("top", { from: 0, to: -3, period: 700, easing: "ease-in-out" })
       : cuerpo.top(0).left(PASEO / 2);
     const tarea = k.limpio(a.title);
+    const hija = st === "wait" && hijaConPuesto(a);
+    const estado = hija ? `${LABEL.wait} ${nombre(hija)}` : st === "wait" ? `${LABEL.wait} otra sesión` : LABEL[st] ?? st;
     return div().id(`actor-${a.address}`).absolute().left(p.x - PASEO / 2).top(p.y).w(lado + PASEO).h(lado + 12).cursor_pointer()
       .transition("left", { duration: 700, easing: "ease-in-out" }).transition("top", { duration: 700, easing: "ease-in-out" })
-      .tooltip([k.nameOf(slot), LABEL[st] ?? st, a.program?.name ?? a.app, tarea].filter(Boolean).join(" · "))
+      .tooltip([k.nameOf(slot), estado, a.program?.name ?? a.app, tarea, coro.tipos.length ? `coro: ${coro.tipos.join(", ")}` : ""].filter(Boolean).join(" · "))
       .on_click(() => ir(a))
-      .children(coro.map((i, n) => div().absolute().top(-6).left(n * 12 - 2).opacity(0.9).child(k.sprite(MEMBERS[i].slug, "working", MINI))))
+      .children(coro.quienes.map((i, n) => div().absolute().top(-6).left(n * 12 - 2).opacity(0.9).child(k.sprite(MEMBERS[i].slug, "working", MINI))))
+      .when(mas > 0, (el) => el.child(div().absolute().top(-4).left(coro.quienes.length * 12 + 10).text_size(9).text_color(t.muted).child(`+${mas}`)))
       .child(vivo);
   };
 
-  const enEscena = [...actores].sort((p, q) => p.y - q.y).map(actor); // antes de la primera fila: las coristas dejan su butaca
+  const enEscena = [...actores].sort((p, q) => p.y - q.y).map(actor);
   const foco = actores.find((p) => p.st === "blocked");
   const letrero = sobretitulos();
   return h_flex().id("escenario").size_full().justify_center().bg(TINTA).overflow_hidden()

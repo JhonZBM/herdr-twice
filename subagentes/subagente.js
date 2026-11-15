@@ -29,7 +29,9 @@ function atender(e) {
     case 'SubagentStart': if (id) hc(['label', terminal, `${PREFIJO}${id}=${tipo}`]); break;
     case 'SubagentStop': if (id) hc(['label', terminal, `${PREFIJO}${id}=`]); break;
     case 'Stop': if (!(e.background_tasks || []).length) barrer(); break;
-    case 'SessionStart': case 'SessionEnd': barrer(); break;
+    // Al compactar o limpiar la conversación los subagentes en segundo plano siguen vivos: no se barre.
+    case 'SessionStart': if (!['compact', 'clear'].includes(e.source)) barrer(); break;
+    case 'SessionEnd': barrer(); break;
   }
 }
 
