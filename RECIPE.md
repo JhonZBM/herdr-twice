@@ -22,8 +22,11 @@ Left to right:
   - `workspace-chrome` footer (69 px).
 - **Work column.** `tabs` on top (42 px), the terminal in the middle, `workspace-status` at the bottom
   (28 px). Each pane header shows the agent's mini mascot next to its name.
-- **Gallery, 260 px** (`galeria`) on the right, next to the hidden Files/Changes stack: thumbnails
-  labelled `@imagenN` with Paste and Clear buttons.
+- **Right column, 260 px**, next to the hidden Files/Changes stack:
+  - **Gallery** (`galeria`) takes the height that's left: thumbnails labelled `@imagenN` with Paste and
+    Clear buttons.
+  - **The stage** (`twice-nine` with `props.escenario`), fixed at 330 px, not resizable: a drawn theatre
+    (260×330) where each mascot stands where her status says. `Alt+R` hides or shows it.
 
 Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silkscreen (OFL, shipped in
 `mods/twice-nine/fonts/`). Themes `apricot-neon` (dark) and `apricot-cream` (light).
@@ -34,6 +37,18 @@ Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silksc
   - `working`: the mascot is busy; `blocked`: a "!" over it, "needs you"; `done`: sparkles, "done";
   - `idle`: awake and still while you're looking at that pane; idle and not focused: it falls asleep;
   - members with no agent sleep on the bench, nodding with "z z z".
+- **Mother and child:** a session launched from another one (`hc run`; herdr records its `parent`) gets a
+  card right after its mother's, even without a pane of its own. While the child works or needs you, the
+  mother shows `wait` (still, with a pulsing hourglass): "esperando a" and the child's mini mascot. The
+  child says "trabajando con" her mother, or its status and "↳ mother". Clicking either line goes to the
+  other one. Priority: blocked > wait > the agent's own status.
+- **Backing singers:** each open Claude Code subagent wakes a free member from the bench, drawn small and
+  working on the leader's card (tooltip: the subagent type). Up to 4 per card; the rest count as "+n".
+- **The stage:** surtitles on top with the most urgent thing in one line (needs you > done > waiting);
+  wings on the left for `wait`, dressing room on the right for idle and asleep; `working` strolls on the
+  boards; `blocked` stands bigger at the microphone, bouncing under the only spotlight; `done` at the
+  corners; free members sit in the front row. Singers stand behind their leader. Moving between zones is
+  animated; click a mascot to go to her agent, hover for her task.
 - **Picking a member:** `Alt+T` opens a centered dialog for the focused agent; clicking the header mascot
   opens the same picker by the pointer; right-click on a sidebar card picks for that agent. Click or
   arrows + Enter; Esc or a click outside closes. Each card says if the member is free or which space has
@@ -50,11 +65,20 @@ Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silksc
 
 - Layout `layouts/twice.json`, cloned from the shipped `main` (0.1.15): the `agents` block is kept but
   hidden (its order is replaced by `twice-nine`'s `setAgentOrder`); `twice-nine` is also the `header`
-  of the pane template; `nombre-agente` is a 0 px block (no UI, only logic).
-- `mods/twice-nine/`: `main.js` (sidebar, header and picker overlay in one mod, chosen by `props()`),
-  `members.js` (names, colors, labels), `sprites/` (90 member SVGs + `bang`, `sparkle`, `zzz`),
-  `fonts/`. State in `shared("twice.slots")` and `shared("twice.prefs")`. Uses `agents`, `panes`,
-  `spaces`, `setAgentOrder`, `openOverlay`, `nextCommand`; runs no programs.
+  of the pane template; `nombre-agente` is a 0 px block (no UI, only logic); the gallery and the stage
+  share a `derecha` column, and `alt-r` is just `layout.toggle:escenario` (no code).
+- `mods/twice-nine/`: `main.js` (sidebar, header, picker overlay and stage in one mod, chosen by
+  `props()`), `escenario.js` (the stage), `relaciones.js` (who launched whom and who has subagents, read
+  from `terminals()`: `parent` and the `twice.sub.*` labels), `members.js` (names, colors, labels),
+  `sprites/` (90 member SVGs + `bang`, `sparkle`, `zzz`, `wait`, `escena`, `foco`), `fonts/`. State in
+  `shared("twice.slots")` and `shared("twice.prefs")`. Uses `agents`, `terminals`, `panes`, `spaces`,
+  `setAgentOrder`, `openOverlay`, `nextCommand`; runs no programs and no timers.
+- `subagentes/subagente.js`: a Claude Code hook. `SubagentStart` runs `hc label <terminal>
+  twice.sub.<agent_id>=<agent_type>`, `SubagentStop` clears it; `SessionStart`, `SessionEnd` and a `Stop`
+  with no background tasks sweep whatever is left. Does nothing outside herdr (no `HC_TERMINAL_ID`),
+  always exits 0, and is installed `async` so it never holds Claude back.
+- `demo/agente-falso.js`: a fake agent that reports its status with OSC 7501 and obeys single keys
+  (`w` `b` `d` `i`, `h` child, `s`/`S` subagent label, `q`). For testing and for retaking `preview.png`.
 - `mods/spaces-twice/`: clone of the shipped `spaces` (0.1.15) with the avatar, name and height changes
   above; runs `git` (as `spaces` does) and `layout.resize` on its own block.
 - `mods/galeria/`: images in `~/.config/herdr-app/galeria/`; runs PowerShell to read the clipboard and to
@@ -78,6 +102,10 @@ Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silksc
   sequence from a hook never reaches the terminal: `cursor/cursor-twice.js` launches Cursor, listens on a local pipe
   and writes the sequence itself; `cursor/estado.js` (hooks `sessionStart`/`stop` → idle, `beforeSubmitPrompt` →
   working) sends the state there. No hook fires on permission prompts, so Cursor never shows "needs you".
+- A subagent interrupted with Esc, or a killed process, may never fire `SubagentStop`: that is what the
+  sweep is for. Until the session next stops or starts, its singer stays.
+- A child launched with `hc run --bg` has no pane, so it isn't in `agents()`: take it from `terminals()`.
+- The fake agent takes keys with `hc keys <t> w`, not `hc send` (it ignores anything longer than one key).
 - herdr doesn't notice edits made through a junction: to see a change in a mod, switch to `main` and back.
 - `herdr-app check` doesn't run async code: a failure inside `cx.spawn` passes the check.
 - Sprites are original pixel art; no logos or official images.
@@ -88,5 +116,9 @@ Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silksc
 - Opening Claude in a space gives it a mascot card; while it works the mascot animates, a permission
   prompt shows "needs you", and switching to another pane makes an idle one fall asleep.
 - `Alt+T` swaps the member, and the next Claude opened in that space gets the same one.
+- With two fake agents, mother and child (`h`, then `w` on the child): the mother says "esperando a" and
+  the child "trabajando con"; `i` on the child puts the mother back.
+- `s` on a fake agent adds a singer to its card and `S` removes it; a real Explore from Claude does the same.
+- `Alt+R` hides and shows the stage; each status sends the mascot to its zone.
 - The spaces list shows the mascot as avatar and is only as tall as its rows.
 - `Ctrl+Shift+V` with a screenshot copied adds `@imagen1`; "@ insert" types it in the prompt.

@@ -9,6 +9,9 @@ status, plus an image gallery for Claude Code and a matching Claude Code status 
 
 - **twice-nine**: one mascot per agent (working, needs you, done, waiting, asleep). Free members sleep on
   the bench. `Alt+T` picks a member; the choice is remembered per space.
+  - A session that launched another one shows "waiting for" her while she works, and the child says who she works with.
+  - Claude Code subagents show up as backing singers on their session's card (`--subagentes`).
+  - **The stage**, a panel under the gallery (`Alt+R`): every status has its spot, and whoever needs you gets the spotlight.
 - **spaces-twice**: the spaces list, with each agent's mascot as avatar.
 - **galeria**: `Ctrl+Shift+V` saves a screenshot as `@imagenN`; write `@imagen3` in Claude Code to use it. A small × on each thumbnail deletes that image.
 - **nombre-agente**: unnamed spaces take their agent's title; `Ctrl+Shift+M` opens Claude in a folder.
@@ -33,7 +36,7 @@ It follows herdr's own rules: it copies without overwriting and asks before repl
 ```sh
 git clone https://github.com/JhonZBM/herdr-twice
 cd herdr-twice
-node instalar.js --galeria --statusline --cursor
+node instalar.js --galeria --statusline --subagentes --cursor
 ```
 
 Clone it wherever you like: nothing depends on its location. The script can be run again: it only adds
@@ -41,6 +44,8 @@ what's missing and warns (without overwriting) when something differs; `--forzar
 
 - `--galeria` adds the `@imagenN` rule to `~/.claude/CLAUDE.md`.
 - `--statusline` links `~/.claude/statusline` to the clone and sets `statusLine` in `~/.claude/settings.json`.
+- `--subagentes` links `~/.claude/subagentes` to the clone and adds its hooks (`SubagentStart`, `SubagentStop`, `Stop`,
+  `SessionStart`, `SessionEnd`, all `async`) to `~/.claude/settings.json`, after the ones you already have.
 - `--cursor` adds the hooks to `~/.cursor/hooks.json` and a **Cursor (TWICE)** entry to herdr's `+` menu.
 
 Restart herdr to load the pixel font. To update: `git pull`, then `node instalar.js` again (themes and
@@ -65,6 +70,7 @@ Each mod works on its own and has its own `RECIPE.md`, `keys.json` and preview i
 | `Alt+G` | Preview the last image (`←` `→` browse, `Enter` insert `@imagenN`, `Esc` close) |
 | `Alt+T` | Pick a member for the focused agent |
 | `Alt+Shift+T` | Next free member |
+| `Alt+R` | Show or hide the stage |
 | `Ctrl+Shift+M` | Open a space with Claude in a folder |
 | `Ctrl+Shift+L` | Switch layout (way out if `twice` fails) |
 
@@ -82,6 +88,10 @@ Icons, colors, thresholds and spacing live in `statusline/iconos.json` (no code 
 - Mascots follow agents that report their status to herdr (Claude Code, Codex…). Cursor CLI doesn't on its own: open it
   from **Cursor (TWICE)** in the `+` menu (or `node cursor/cursor-twice.js`). Its hooks run outside the terminal, so they
   tell that launcher, which reports working/waiting to herdr. Cursor has no hook for permission prompts, so "needs you" isn't shown.
+- "Waiting for" needs herdr to know who launched whom: it works for sessions started with `hc run` from another one.
+- Subagents interrupted with Esc may not fire their hook; their singers leave when the session next stops or starts.
+- To try the mascots without a real agent: `herdr-app do tab.new --name demo --argv '["node","demo/agente-falso.js"]'`,
+  then `hc keys <t> w` (`w` `b` `d` `i` status, `h` child, `s`/`S` subagent, `q` quit).
 - To see a change made to a mod: `herdr-app do layout.switch --name main`, then `--name twice`.
 - Rebuild it from scratch: [RECIPE.md](RECIPE.md).
 

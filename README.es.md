@@ -9,6 +9,9 @@ su estado, más una galería de imágenes para Claude Code y una statusline de C
 
 - **twice-nine**: una mascota por agente (trabajando, te necesita, listo, en espera, dormida). Las libres
   duermen en la banca. `Alt+T` elige integrante; la elección se recuerda por espacio.
+  - Una sesión que lanzó a otra dice «esperando a» ella mientras trabaja, y la hija dice con quién trabaja.
+  - Los subagentes de Claude Code salen como coristas en la tarjeta de su sesión (`--subagentes`).
+  - **El escenario**, un panel bajo la galería (`Alt+R`): cada estado tiene su sitio, y quien te necesita se lleva el foco.
 - **spaces-twice**: la lista de espacios, con la mascota de su agente como avatar.
 - **galeria**: `Ctrl+Shift+V` guarda una captura como `@imagenN`; escribe `@imagen3` en Claude Code para usarla. Una pequeña × en cada miniatura borra esa imagen.
 - **nombre-agente**: los espacios sin nombre toman el título de su agente; `Ctrl+Shift+M` abre Claude en una carpeta.
@@ -33,7 +36,7 @@ Sigue las reglas de herdr: copia sin pisar y pregunta antes de cambiar un atajo 
 ```sh
 git clone https://github.com/JhonZBM/herdr-twice
 cd herdr-twice
-node instalar.js --galeria --statusline --cursor
+node instalar.js --galeria --statusline --subagentes --cursor
 ```
 
 Clónalo donde quieras: nada depende de su ubicación. Se puede repetir: solo añade lo que falta y avisa (sin
@@ -41,6 +44,8 @@ pisar) si algo es distinto; `--forzar` lo pisa.
 
 - `--galeria` añade la regla de `@imagenN` a `~/.claude/CLAUDE.md`.
 - `--statusline` enlaza `~/.claude/statusline` al clon y pone `statusLine` en `~/.claude/settings.json`.
+- `--subagentes` enlaza `~/.claude/subagentes` al clon y añade sus hooks (`SubagentStart`, `SubagentStop`, `Stop`,
+  `SessionStart`, `SessionEnd`, todos `async`) a `~/.claude/settings.json`, detrás de los que ya tengas.
 - `--cursor` añade los hooks a `~/.cursor/hooks.json` y una entrada **Cursor (TWICE)** al menú `+` de herdr.
 
 Reinicia herdr para cargar la fuente pixel. Para actualizar: `git pull` y otra vez `node instalar.js` (temas
@@ -64,6 +69,7 @@ Cada mod funciona por su cuenta y lleva en su carpeta su `RECIPE.md`, su `keys.j
 | `Alt+G` | Vista previa de la última imagen (`←` `→` pasar, `Enter` insertar `@imagenN`, `Esc` cerrar) |
 | `Alt+T` | Elegir integrante del agente enfocado |
 | `Alt+Shift+T` | Siguiente integrante libre |
+| `Alt+R` | Mostrar u ocultar el escenario |
 | `Ctrl+Shift+M` | Abrir un espacio con Claude en una carpeta |
 | `Ctrl+Shift+L` | Cambiar de layout (salida si `twice` falla) |
 
@@ -86,6 +92,10 @@ Opus 5.5  ✦ medio    ▸ repo    main  ·  3 cambios    ⇡ 1    ▰▰▰▰�
   ábrelo desde **Cursor (TWICE)** en el menú `+` (o `node cursor/cursor-twice.js`). Sus hooks corren fuera del terminal, así
   que avisan a ese lanzador, que le pasa a herdr «trabajando» / «en espera». Cursor no tiene hook para cuando pide permiso,
   así que «te necesita» no sale.
+- «Esperando a» necesita que herdr sepa quién lanzó a quién: funciona con las sesiones abiertas con `hc run` desde otra.
+- Un subagente interrumpido con Esc puede no disparar su hook; sus coristas se van cuando la sesión se detiene o arranca.
+- Para probar las mascotas sin un agente de verdad: `herdr-app do tab.new --name demo --argv '["node","demo/agente-falso.js"]'`
+  y luego `hc keys <t> w` (`w` `b` `d` `i` estado, `h` hija, `s`/`S` subagente, `q` salir).
 - Para ver un cambio en un mod: `herdr-app do layout.switch --name main` y luego `--name twice`.
 - Para construirlo desde cero: [RECIPE.md](RECIPE.md).
 
