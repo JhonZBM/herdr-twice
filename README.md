@@ -16,7 +16,7 @@ status, plus an image gallery for Claude Code and a matching Claude Code status 
 - **galeria**: `Ctrl+Shift+V` saves a screenshot as `@imagenN`; write `@imagen3` in Claude Code to use it. A small × on each thumbnail deletes that image.
 - **nombre-agente**: unnamed spaces take their agent's title; `Ctrl+Shift+M` opens Claude in a folder.
 - **statusline**: model, effort, branch, context and usage limits in one line.
-- **Cursor CLI**: a tiny launcher and hooks so Cursor agents get a mascot too.
+- **Cursor CLI and Codex**: a tiny launcher and hooks so their agents get a mascot too.
 - Themes `apricot-neon` (dark) and `apricot-cream` (light).
 
 ## Install
@@ -36,7 +36,7 @@ It follows herdr's own rules: it copies without overwriting and asks before repl
 ```sh
 git clone https://github.com/JhonZBM/herdr-twice
 cd herdr-twice
-node instalar.js --galeria --statusline --subagentes --cursor
+node instalar.js --galeria --statusline --subagentes --cursor --codex
 ```
 
 Clone it wherever you like: nothing depends on its location. The script can be run again: it only adds
@@ -47,6 +47,8 @@ what's missing and warns (without overwriting) when something differs; `--forzar
 - `--subagentes` links `~/.claude/subagentes` to the clone and adds its hooks (`SubagentStart`, `SubagentStop`, `Stop`,
   `SessionStart`, `SessionEnd`, all `async`) to `~/.claude/settings.json`, after the ones you already have.
 - `--cursor` adds the hooks to `~/.cursor/hooks.json` and a **Cursor (TWICE)** entry to herdr's `+` menu.
+- `--codex` adds the hooks to `~/.codex/hooks.json` and a **Codex (TWICE)** entry to the `+` menu. Codex doesn't run new
+  hooks until you review them: open it, type `/hooks` and accept them.
 
 Restart herdr to load the pixel font. To update: `git pull`, then `node instalar.js` again (themes and
 layout are copies).
@@ -85,9 +87,12 @@ Icons, colors, thresholds and spacing live in `statusline/iconos.json` (no code 
 ## Notes
 
 - Paste in the gallery is Windows only (PowerShell); dropping files on it works everywhere.
-- Mascots follow agents that report their status to herdr (Claude Code, Codex…). Cursor CLI doesn't on its own: open it
-  from **Cursor (TWICE)** in the `+` menu (or `node cursor/cursor-twice.js`). Its hooks run outside the terminal, so they
-  tell that launcher, which reports working/waiting to herdr. Cursor has no hook for permission prompts, so "needs you" isn't shown.
+- Mascots follow agents that report their status to herdr (Claude Code does). Cursor CLI and Codex don't on their own: open
+  them from **Cursor (TWICE)** / **Codex (TWICE)** in the `+` menu (or `node agentes/lanzador.js cursor|codex`). Their hooks
+  run outside the terminal, so they tell that launcher, which reports the status to herdr.
+  - Cursor has no hook for permission prompts, so "needs you" isn't shown.
+  - Codex shows "needs you" on permission prompts; it always starts with `--no-daemon`, as herdr requires.
+  - Gemini CLI is not covered: Google replaced it with Antigravity CLI.
 - "Waiting for" needs herdr to know who launched whom: it works for sessions started with `hc run` from another one.
 - Subagents interrupted with Esc may not fire their hook; their singers leave when the session next stops or starts.
 - To try the mascots without a real agent: `herdr-app do tab.new --name demo --argv '["node","demo/agente-falso.js"]'`,

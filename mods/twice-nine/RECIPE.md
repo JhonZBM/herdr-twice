@@ -35,8 +35,8 @@ in `fonts/`).
   at the corners, `wait` in the wings, idle and asleep in the dressing room, free members in the front
   row, singers behind their leader. Surtitles show the most urgent line. Click goes to the agent.
   `Alt+R` hides or shows the block.
-- Only agents that report a status to herdr get a mascot (Claude Code, Codex…; Cursor CLI through the
-  repo's `cursor/` launcher).
+- Only agents that report a status to herdr get a mascot (Claude Code; Cursor CLI and Codex through the
+  repo's `agentes/` launcher).
 
 ## Built from
 

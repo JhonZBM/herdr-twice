@@ -98,10 +98,16 @@ Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silksc
   mentions `@imagenN`, read `~/.config/herdr-app/galeria/imagenN.png` with Read". `instalar.js --galeria`
   does it.
 - Mascots only follow agents that report a status to herdr (OSC 7501: `ESC ] 7501 ; state=working:app=cursor ESC `).
-  Claude Code does it itself. Cursor CLI doesn't, and its hooks run in a hidden console of their own, so writing the
-  sequence from a hook never reaches the terminal: `cursor/cursor-twice.js` launches Cursor, listens on a local pipe
-  and writes the sequence itself; `cursor/estado.js` (hooks `sessionStart`/`stop` → idle, `beforeSubmitPrompt` →
-  working) sends the state there. No hook fires on permission prompts, so Cursor never shows "needs you".
+  Claude Code does it itself. Cursor CLI and Codex don't, and their hooks run without the terminal, so writing the
+  sequence from a hook never reaches it: `agentes/lanzador.js <cursor|codex>` launches the CLI, listens on a local pipe
+  and writes the sequence itself; `agentes/estado.js <state>`, called from the hooks, sends the state there.
+  - Cursor (`~/.cursor/hooks.json`): `sessionStart`/`stop` → idle, `beforeSubmitPrompt` → working. No hook fires on
+    permission prompts, so Cursor never shows "needs you".
+  - Codex (`~/.codex/hooks.json`): `SessionStart`/`Stop`/`Interrupt` → idle, `UserPromptSubmit` → working,
+    `PermissionRequest` → blocked, `PostToolUse` → working (back from "needs you" once you answer). Launched with
+    `--no-daemon`. New hooks don't run until reviewed with `/hooks` inside Codex.
+  - The hook always answers JSON (`{}`, or `{"continue":true}` on a prompt): Codex takes plain text as model context.
+  - `cursor/cursor-twice.js` and `cursor/estado.js` are the old paths, kept as redirects.
 - A subagent interrupted with Esc, or a killed process, may never fire `SubagentStop`: that is what the
   sweep is for. Until the session next stops or starts, its singer stays.
 - A child launched with `hc run --bg` has no pane, so it isn't in `agents()`: take it from `terminals()`.

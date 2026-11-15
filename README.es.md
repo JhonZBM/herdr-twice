@@ -16,7 +16,7 @@ su estado, más una galería de imágenes para Claude Code y una statusline de C
 - **galeria**: `Ctrl+Shift+V` guarda una captura como `@imagenN`; escribe `@imagen3` en Claude Code para usarla. Una pequeña × en cada miniatura borra esa imagen.
 - **nombre-agente**: los espacios sin nombre toman el título de su agente; `Ctrl+Shift+M` abre Claude en una carpeta.
 - **statusline**: modelo, esfuerzo, rama, contexto y límites de uso en una línea.
-- **Cursor CLI**: un lanzador mínimo y hooks para que los agentes de Cursor también tengan mascota.
+- **Cursor CLI y Codex**: un lanzador mínimo y hooks para que sus agentes también tengan mascota.
 - Temas `apricot-neon` (oscuro) y `apricot-cream` (claro).
 
 ## Instalar
@@ -36,7 +36,7 @@ Sigue las reglas de herdr: copia sin pisar y pregunta antes de cambiar un atajo 
 ```sh
 git clone https://github.com/JhonZBM/herdr-twice
 cd herdr-twice
-node instalar.js --galeria --statusline --subagentes --cursor
+node instalar.js --galeria --statusline --subagentes --cursor --codex
 ```
 
 Clónalo donde quieras: nada depende de su ubicación. Se puede repetir: solo añade lo que falta y avisa (sin
@@ -47,6 +47,8 @@ pisar) si algo es distinto; `--forzar` lo pisa.
 - `--subagentes` enlaza `~/.claude/subagentes` al clon y añade sus hooks (`SubagentStart`, `SubagentStop`, `Stop`,
   `SessionStart`, `SessionEnd`, todos `async`) a `~/.claude/settings.json`, detrás de los que ya tengas.
 - `--cursor` añade los hooks a `~/.cursor/hooks.json` y una entrada **Cursor (TWICE)** al menú `+` de herdr.
+- `--codex` añade los hooks a `~/.codex/hooks.json` y una entrada **Codex (TWICE)** al menú `+`. Codex no ejecuta hooks
+  nuevos hasta que los revisas: ábrelo, escribe `/hooks` y acéptalos.
 
 Reinicia herdr para cargar la fuente pixel. Para actualizar: `git pull` y otra vez `node instalar.js` (temas
 y layout son copias).
@@ -88,10 +90,12 @@ Opus 5.5  ✦ medio    ▸ repo    main  ·  3 cambios    ⇡ 1    ▰▰▰▰�
 ## Notas
 
 - Pegar en la galería es solo Windows (PowerShell); soltar archivos funciona en todos.
-- Las mascotas siguen a los agentes que informan su estado a herdr (Claude Code, Codex…). Cursor CLI no lo hace solo:
-  ábrelo desde **Cursor (TWICE)** en el menú `+` (o `node cursor/cursor-twice.js`). Sus hooks corren fuera del terminal, así
-  que avisan a ese lanzador, que le pasa a herdr «trabajando» / «en espera». Cursor no tiene hook para cuando pide permiso,
-  así que «te necesita» no sale.
+- Las mascotas siguen a los agentes que informan su estado a herdr (Claude Code lo hace). Cursor CLI y Codex no lo hacen solos:
+  ábrelos desde **Cursor (TWICE)** / **Codex (TWICE)** en el menú `+` (o `node agentes/lanzador.js cursor|codex`). Sus hooks
+  corren fuera del terminal, así que avisan a ese lanzador, que le pasa el estado a herdr.
+  - Cursor no tiene hook para cuando pide permiso, así que «te necesita» no sale.
+  - Codex sí muestra «te necesita» al pedir permiso; se abre siempre con `--no-daemon`, como exige herdr.
+  - Gemini CLI queda fuera: Google lo reemplazó por Antigravity CLI.
 - «Esperando a» necesita que herdr sepa quién lanzó a quién: funciona con las sesiones abiertas con `hc run` desde otra.
 - Un subagente interrumpido con Esc puede no disparar su hook; sus coristas se van cuando la sesión se detiene o arranca.
 - Para probar las mascotas sin un agente de verdad: `herdr-app do tab.new --name demo --argv '["node","demo/agente-falso.js"]'`

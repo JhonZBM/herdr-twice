@@ -3,10 +3,10 @@
 // los atajos de cada mod (mods/<mod>/keys.json) y los colores de agentes.
 // --solo galeria,twice-nine: solo esos mods y sus atajos, sin tocar tu layout ni tus temas.
 // Opcional: --galeria (regla @imagenN en ~/.claude/CLAUDE.md), --statusline (la de Claude Code),
-// --subagentes (hooks de Claude Code: sus subagentes salen como coristas) y --cursor (hooks de
-// Cursor CLI para que también tenga mascota).
+// --subagentes (hooks de Claude Code: sus subagentes salen como coristas), y --cursor y --codex
+// (hooks y lanzador para que Cursor CLI y Codex también tengan mascota).
 // Se puede repetir: solo cambia lo que falta y nunca pisa algo distinto sin --forzar.
-// Uso, dentro del clon: node instalar.js [--solo m1,m2] [--forzar] [--galeria] [--statusline] [--subagentes] [--cursor]
+// Uso, dentro del clon: node instalar.js [--solo m1,m2] [--forzar] [--galeria] [--statusline] [--subagentes] [--cursor] [--codex]
 'use strict';
 const fs = require('fs');
 const os = require('os');
@@ -27,6 +27,8 @@ const SUBAGENTES = 'node ~/.claude/subagentes/subagente.js';
 const HOOKS_SUBAGENTES = ['SubagentStart', 'SubagentStop', 'Stop', 'SessionStart', 'SessionEnd'];
 // Evento de Cursor → estado para herdr. Sin «te necesita»: Cursor no avisa cuando pide permiso.
 const HOOKS_CURSOR = { sessionStart: 'idle', beforeSubmitPrompt: 'working', stop: 'idle' };
+// Evento de Codex → estado. PostToolUse devuelve a «trabajando» tras conceder un permiso.
+const HOOKS_CODEX = { SessionStart: 'idle', UserPromptSubmit: 'working', PermissionRequest: 'blocked', PostToolUse: 'working', Stop: 'idle', Interrupt: 'idle' };
 
 let avisos = 0;
 const ok = (m) => console.log('  ✓ ' + m);
@@ -87,8 +89,15 @@ const keys = leerJson(rutaKeys, {});
 let cambiado = false;
 keys.global = keys.global || {};
 const atajos = Object.assign({}, ...mods.map((m) => leerJson(path.join(repo, 'mods', m, 'keys.json'), {}).global));
+// Un atajo que muestra u oculta un bloque (layout.toggle:<id>) solo se instala si algún layout
+// tiene ese bloque: sin él (--solo, o un layout anterior sin pisar) la tecla quedaría ocupada sin hacer nada.
+const dirLayouts = path.join(home, 'layouts');
+const layouts = fs.existsSync(dirLayouts) ? fs.readdirSync(dirLayouts).filter((f) => f.endsWith('.json')).map((f) => leer(path.join(dirLayouts, f))) : [];
+const hayBloque = (id) => layouts.some((l) => new RegExp(`"id"\\s*:\\s*"${id}"`).test(l));
 for (const [tecla, comando] of Object.entries(atajos)) {
-  if (keys.global[tecla] === comando) ok(`${tecla} → ${comando}`);
+  const bloque = /^layout\.toggle:([\w-]+)$/.exec(comando)?.[1];
+  if (bloque && !hayBloque(bloque)) console.log(`  · ${tecla} sin instalar: ningún layout tiene el bloque «${bloque}» (añádelo según el RECIPE.md del mod y repite)`);
+  else if (keys.global[tecla] === comando) ok(`${tecla} → ${comando}`);
   else if (keys.global[tecla] && !forzar) aviso(`${tecla} ya hace «${keys.global[tecla]}»; --forzar lo cambia a ${comando}`);
   else { keys.global[tecla] = comando; cambiado = true; hecho(`${tecla} → ${comando}`); }
 }
@@ -151,32 +160,56 @@ if (opcion('--subagentes')) {
   if (cambios) escribirJson(rutaSettings, settings);
 }
 
+// Cursor CLI y Codex no informan su estado a herdr: sus hooks avisan a agentes/estado.js y una
+// entrada del menú + los abre por agentes/lanzador.js, que es quien se lo dice a herdr.
+// Los hooks.json no se versionan: la ruta del clon se escribe al instalar.
+const hookEstado = (estado) => `node "${path.join(repo, 'agentes', 'estado.js').replace(/\\/g, '/')}" ${estado}`;
+const esNuestro = (h) => /(agentes|cursor)\/estado\.js/.test(h.command || ''); // también la ruta antigua, cursor/estado.js
+function menuTwice(clave, agente, name, icon) {
+  const rutaProgramas = path.join(home, 'programs.json');
+  const programas = leerJson(rutaProgramas, {});
+  programas.programs = programas.programs || {};
+  const entrada = { name, icon, run: ['node', path.join(repo, 'agentes', 'lanzador.js').replace(/\\/g, '/'), agente] };
+  if (JSON.stringify(programas.programs[clave]) === JSON.stringify(entrada)) ok('menú + de herdr');
+  else { programas.programs[clave] = entrada; escribirJson(rutaProgramas, programas); hecho(`menú + de herdr: «${name}»`); }
+}
+
 if (opcion('--cursor')) {
   console.log('Cursor CLI (hooks):');
-  // hooks.json no se versiona: la ruta del clon se escribe al instalar.
-  const script = path.join(repo, 'cursor', 'estado.js').replace(/\\/g, '/');
   const rutaHooks = path.join(os.homedir(), '.cursor', 'hooks.json');
   const config = leerJson(rutaHooks, { version: 1, hooks: {} });
   config.hooks = config.hooks || {};
   let cambios = false;
   for (const [evento, estado] of Object.entries(HOOKS_CURSOR)) {
-    const command = `node "${script}" ${estado}`;
+    const command = hookEstado(estado);
     const lista = (config.hooks[evento] = config.hooks[evento] || []);
-    const nuestro = lista.find((h) => h.command?.includes('estado.js'));
+    const nuestro = lista.find(esNuestro);
     if (nuestro?.command === command) ok(evento);
     else if (nuestro) { nuestro.command = command; cambios = true; hecho(`${evento} (ruta nueva)`); }
     else { lista.push({ command }); cambios = true; hecho(evento); }
   }
   if (cambios) { fs.mkdirSync(path.dirname(rutaHooks), { recursive: true }); escribirJson(rutaHooks, config); }
+  menuTwice('cursor-twice', 'cursor', 'Cursor (TWICE)', 'icons/cursor.svg');
+}
 
-  // Entrada del menú + de herdr: abre Cursor por el lanzador, que es quien avisa a herdr.
-  const rutaProgramas = path.join(home, 'programs.json');
-  const programas = leerJson(rutaProgramas, {});
-  programas.programs = programas.programs || {};
-  const run = ['node', path.join(repo, 'cursor', 'cursor-twice.js').replace(/\\/g, '/')];
-  const entrada = { name: 'Cursor (TWICE)', icon: 'icons/cursor.svg', run };
-  if (JSON.stringify(programas.programs['cursor-twice']) === JSON.stringify(entrada)) ok('menú + de herdr');
-  else { programas.programs['cursor-twice'] = entrada; escribirJson(rutaProgramas, programas); hecho('menú + de herdr: «Cursor (TWICE)»'); }
+if (opcion('--codex')) {
+  console.log('Codex (hooks):');
+  const rutaHooks = path.join(os.homedir(), '.codex', 'hooks.json');
+  const config = leerJson(rutaHooks, { hooks: {} });
+  config.hooks = config.hooks || {};
+  let cambios = false;
+  for (const [evento, estado] of Object.entries(HOOKS_CODEX)) {
+    // Un grupo propio al final: los hooks que ya tenga ese evento no se tocan.
+    const command = hookEstado(estado);
+    const grupos = (config.hooks[evento] = config.hooks[evento] || []);
+    const nuestro = grupos.flatMap((g) => g.hooks || []).find(esNuestro);
+    if (nuestro?.command === command) ok(evento);
+    else if (nuestro) { nuestro.command = command; cambios = true; hecho(`${evento} (ruta nueva)`); }
+    else { grupos.push({ hooks: [{ type: 'command', command }] }); cambios = true; hecho(evento); }
+  }
+  if (cambios) { fs.mkdirSync(path.dirname(rutaHooks), { recursive: true }); escribirJson(rutaHooks, config); }
+  menuTwice('codex-twice', 'codex', 'Codex (TWICE)', 'icons/codex.svg');
+  if (cambios) console.log('  · Codex no ejecuta hooks nuevos hasta que los revisas: ábrelo, escribe /hooks y acéptalos.');
 }
 
 console.log('herdr-app check:');
