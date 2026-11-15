@@ -79,6 +79,8 @@ Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silksc
   always exits 0, and is installed `async` so it never holds Claude back.
 - `demo/agente-falso.js`: a fake agent that reports its status with OSC 7501 and obeys single keys
   (`w` `b` `d` `i`, `h` child, `s`/`S` subagent label, `q`). For testing and for retaking `preview.png`.
+- `demo/presentacion.js`: a scripted tour over fake agents (`herdr-app do` and `hc` only, one call per step) to record
+  a demo or retake `preview.png` without spending a real agent.
 - `mods/spaces-twice/`: clone of the shipped `spaces` (0.1.15) with the avatar, name and height changes
   above; runs `git` (as `spaces` does) and `layout.resize` on its own block.
 - `mods/galeria/`: images in `~/.config/herdr-app/galeria/`; runs PowerShell to read the clipboard and to
