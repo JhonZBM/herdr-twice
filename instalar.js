@@ -183,18 +183,25 @@ if (opcion('--subagentes')) {
   if (cambios) escribirJson(rutaSettings, settings);
 }
 
-// Cursor CLI y Codex no informan su estado a herdr: sus hooks avisan a agentes/estado.js y una
+// Cursor CLI y Codex no informan su estado a herdr: sus hooks avisan a agentes/estado.js y la
 // entrada del menú + los abre por agentes/lanzador.js, que es quien se lo dice a herdr.
 // Los hooks.json no se versionan: la ruta del clon se escribe al instalar.
 const hookEstado = (estado) => `node "${path.join(repo, 'agentes', 'estado.js').replace(/\\/g, '/')}" ${estado}`;
 const esNuestro = (h) => /(agentes|cursor)\/estado\.js/.test(h.command || ''); // también la ruta antigua, cursor/estado.js
-function menuTwice(clave, agente, name, icon) {
+// Cambia solo el `run` de la entrada que herdr ya trae (nombre e icono siguen siendo los suyos), así
+// no hay dos «Cursor» en el menú + y abrirlo desde cualquier sitio pasa por el lanzador.
+function menuTwice(agente) {
   const rutaProgramas = path.join(home, 'programs.json');
   const programas = leerJson(rutaProgramas, {});
   programas.programs = programas.programs || {};
-  const entrada = { name, icon, run: ['node', path.join(repo, 'agentes', 'lanzador.js').replace(/\\/g, '/'), agente] };
-  if (JSON.stringify(programas.programs[clave]) === JSON.stringify(entrada)) ok('menú + de herdr');
-  else { programas.programs[clave] = entrada; escribirJson(rutaProgramas, programas); hecho(`menú + de herdr: «${name}»`); }
+  const run = ['node', path.join(repo, 'agentes', 'lanzador.js').replace(/\\/g, '/'), agente];
+  const antigua = `${agente}-twice`; // la entrada aparte «Cursor (TWICE)» de versiones anteriores
+  const actual = programas.programs[agente] || {};
+  if (JSON.stringify(actual.run) === JSON.stringify(run) && !programas.programs[antigua]) return ok('menú + de herdr');
+  programas.programs[agente] = { ...actual, run };
+  delete programas.programs[antigua];
+  escribirJson(rutaProgramas, programas);
+  hecho(`menú + de herdr: «${agente}» con lanzador`);
 }
 
 if (opcion('--cursor')) {
@@ -212,7 +219,7 @@ if (opcion('--cursor')) {
     else { lista.push({ command }); cambios = true; hecho(evento); }
   }
   if (cambios) { fs.mkdirSync(path.dirname(rutaHooks), { recursive: true }); escribirJson(rutaHooks, config); }
-  menuTwice('cursor-twice', 'cursor', 'Cursor (TWICE)', 'icons/cursor.svg');
+  menuTwice('cursor');
 }
 
 if (opcion('--codex')) {
@@ -231,7 +238,7 @@ if (opcion('--codex')) {
     else { grupos.push({ hooks: [{ type: 'command', command }] }); cambios = true; hecho(evento); }
   }
   if (cambios) { fs.mkdirSync(path.dirname(rutaHooks), { recursive: true }); escribirJson(rutaHooks, config); }
-  menuTwice('codex-twice', 'codex', 'Codex (TWICE)', 'icons/codex.svg');
+  menuTwice('codex');
   if (cambios) console.log('  · Codex no ejecuta hooks nuevos hasta que los revisas: ábrelo, escribe /hooks y acéptalos.');
 }
 

@@ -46,8 +46,9 @@ what's missing and warns (without overwriting) when something differs; `--forzar
 - `--statusline` links `~/.claude/statusline` to the clone and sets `statusLine` in `~/.claude/settings.json`.
 - `--subagentes` links `~/.claude/subagentes` to the clone and adds its hooks (`SubagentStart`, `SubagentStop`, `Stop`,
   `SessionStart`, `SessionEnd`, all `async`) to `~/.claude/settings.json`, after the ones you already have.
-- `--cursor` adds the hooks to `~/.cursor/hooks.json` and a **Cursor (TWICE)** entry to herdr's `+` menu.
-- `--codex` adds the hooks to `~/.codex/hooks.json` and a **Codex (TWICE)** entry to the `+` menu. Codex doesn't run new
+- `--cursor` adds the hooks to `~/.cursor/hooks.json` and makes herdr's own **Cursor** entry in the `+` menu
+  open it through the launcher.
+- `--codex` adds the hooks to `~/.codex/hooks.json` and does the same with the **Codex** entry. Codex doesn't run new
   hooks until you review them: open it, type `/hooks` and accept them.
 
 The mods' art (their `.svg` files) is copied to `~/.config/herdr-app/herdr-twice/`: herdr only draws images that
@@ -91,8 +92,9 @@ Icons, colors, thresholds and spacing live in `statusline/iconos.json` (no code 
 
 - Paste in the gallery is Windows only (PowerShell); dropping files on it works everywhere.
 - Mascots follow agents that report their status to herdr (Claude Code does). Cursor CLI and Codex don't on their own: open
-  them from **Cursor (TWICE)** / **Codex (TWICE)** in the `+` menu (or `node agentes/lanzador.js cursor|codex`). Their hooks
-  run outside the terminal, so they tell that launcher, which reports the status to herdr.
+  them from **Cursor** / **Codex** in the `+` menu (or `node agentes/lanzador.js cursor|codex`). Their hooks run outside
+  the terminal, so they tell that launcher, which reports the status to herdr. Typed by hand in a shell they get no
+  mascot unless the command goes through the launcher (e.g. a shell function that calls it when `HC_TERMINAL_ID` is set).
   - Cursor has no hook for permission prompts, so "needs you" isn't shown.
   - Codex shows "needs you" on permission prompts; it always starts with `--no-daemon`, as herdr requires.
   - Gemini CLI is not covered: Google replaced it with Antigravity CLI.

@@ -46,8 +46,9 @@ pisar) si algo es distinto; `--forzar` lo pisa.
 - `--statusline` enlaza `~/.claude/statusline` al clon y pone `statusLine` en `~/.claude/settings.json`.
 - `--subagentes` enlaza `~/.claude/subagentes` al clon y añade sus hooks (`SubagentStart`, `SubagentStop`, `Stop`,
   `SessionStart`, `SessionEnd`, todos `async`) a `~/.claude/settings.json`, detrás de los que ya tengas.
-- `--cursor` añade los hooks a `~/.cursor/hooks.json` y una entrada **Cursor (TWICE)** al menú `+` de herdr.
-- `--codex` añade los hooks a `~/.codex/hooks.json` y una entrada **Codex (TWICE)** al menú `+`. Codex no ejecuta hooks
+- `--cursor` añade los hooks a `~/.cursor/hooks.json` y hace que la entrada **Cursor** que trae herdr en el
+  menú `+` lo abra por el lanzador.
+- `--codex` añade los hooks a `~/.codex/hooks.json` y hace lo mismo con la entrada **Codex**. Codex no ejecuta hooks
   nuevos hasta que los revisas: ábrelo, escribe `/hooks` y acéptalos.
 
 El arte de los mods (sus `.svg`) se copia a `~/.config/herdr-app/herdr-twice/`: herdr solo dibuja imágenes que estén
@@ -94,8 +95,9 @@ Opus 5.5  ✦ medio    ▸ repo    main  ·  3 cambios    ⇡ 1    ▰▰▰▰�
 
 - Pegar en la galería es solo Windows (PowerShell); soltar archivos funciona en todos.
 - Las mascotas siguen a los agentes que informan su estado a herdr (Claude Code lo hace). Cursor CLI y Codex no lo hacen solos:
-  ábrelos desde **Cursor (TWICE)** / **Codex (TWICE)** en el menú `+` (o `node agentes/lanzador.js cursor|codex`). Sus hooks
-  corren fuera del terminal, así que avisan a ese lanzador, que le pasa el estado a herdr.
+  ábrelos desde **Cursor** / **Codex** en el menú `+` (o `node agentes/lanzador.js cursor|codex`). Sus hooks corren fuera
+  del terminal, así que avisan a ese lanzador, que le pasa el estado a herdr. Escritos a mano en una shell no tienen
+  mascota salvo que el comando pase por el lanzador (p. ej. una función de la shell que lo llame si hay `HC_TERMINAL_ID`).
   - Cursor no tiene hook para cuando pide permiso, así que «te necesita» no sale.
   - Codex sí muestra «te necesita» al pedir permiso; se abre siempre con `--no-daemon`, como exige herdr.
   - Gemini CLI queda fuera: Google lo reemplazó por Antigravity CLI.
