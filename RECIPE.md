@@ -110,7 +110,8 @@ Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silksc
     `--no-daemon`. New hooks don't run until reviewed with `/hooks` inside Codex.
   - The hook always answers JSON (`{}`, or `{"continue":true}` on a prompt): Codex takes plain text as model context.
   - The `+` menu entry is herdr's own `cursor` / `codex` with only `run` overridden in `programs.json` (the launcher);
-    the installer removes the older separate `cursor-twice` / `codex-twice` entries.
+    the installer removes the older separate `cursor-twice` / `codex-twice` entries. herdr's "installed" check then
+    looks at `node`, so the menu offers the agent even where it isn't installed; picking it shows the launcher's error.
   - Tried and dropped: on Windows, Cursor runs hooks in a hidden console of their own, so even writing the sequence to
     `CONOUT$` from the hook doesn't reach the terminal.
   - `cursor/cursor-twice.js` and `cursor/estado.js` are the old paths, kept as redirects.
