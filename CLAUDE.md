@@ -12,7 +12,8 @@ Ligero en disco **y** en recursos (CPU, memoria, procesos lanzados), también en
 - Sin rutas absolutas (disco, usuario) en lo versionado: siempre relativas a `~` o al repo.
 ## Convenciones
 - Un mod = `mods/<nombre>/` con `mod.json`, `main.js`, `keys.json` (si hay atajos), `RECIPE.md` y `preview.png` si procede.
-- `instalar.js` es el único instalador (mods por junction, temas/layout por copia): idempotente, no pisa sin
+- `instalar.js` es el único instalador (mods por junction; temas, layout y arte `.svg` por copia, porque herdr no
+  dibuja imágenes a través del junction): idempotente, no pisa sin
   `--forzar`, admite `--solo`; lo opcional va tras un flag.
 - `README.md` (inglés) y `README.es.md` (español) se actualizan juntos; `RECIPE.md` explica cómo reconstruir.
 - Galería: imágenes citadas como `@imagenN` → `~/.config/herdr-app/galeria/imagenN.png`.

@@ -115,6 +115,11 @@ Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silksc
 - A child launched with `hc run --bg` has no pane, so it isn't in `agents()`: take it from `terminals()`.
 - The fake agent takes keys with `hc keys <t> w`, not `hc send` (it ignores anything longer than one key).
 - herdr doesn't notice edits made through a junction: to see a change in a mod, switch to `main` and back.
+- Since herdr 0.1.16, `image()` and `svg()` only draw files that really live under `~/.config/herdr-app`: not
+  through a junction, not by an absolute path outside it. `instalar.js` copies each mod's `.svg` files to
+  `herdr-twice/<mod>/` and the mods use that copy when it exists (`ARTE` in `twice-nine/members.js`, the same
+  check in `spaces-twice` and `galeria`); a mod copied by hand keeps using its own folder. After changing a
+  sprite, run `node instalar.js` again.
 - `herdr-app check` doesn't run async code: a failure inside `cx.spawn` passes the check.
 - Sprites are original pixel art; no logos or official images.
 

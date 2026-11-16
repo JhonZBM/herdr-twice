@@ -19,7 +19,7 @@
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { panes, spaces, theme, run, props, shared, setShared, setAgentOrder, home, layout, nextCommand, openOverlay, closeOverlay } from "herdr";
-import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL, SLOTS, PREFS } from "./members.js";
+import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL, SLOTS, PREFS, ARTE, buscarArte } from "./members.js";
 import { equipo, esperaA, enOrden, repartirCoros } from "./relaciones.js";
 import { escenario } from "./escenario.js";
 
@@ -36,7 +36,7 @@ const pose = (a, todos = equipo()) => {
   const mirando = a.focused && spaces().some((s) => s.active && s.id === a.space);
   return a.status === "idle" && !mirando ? "sleep" : a.status;
 };
-const frame = (slug, state, f) => `mods/twice-nine/sprites/${slug}-${state}-${f}.svg`;
+const frame = (slug, state, f) => `${ARTE}/sprites/${slug}-${state}-${f}.svg`;
 
 // La mascota en su pose. Dos cuadros apilados que se relevan con opacidad:
 // corre nativo, sin temporizadores.
@@ -48,7 +48,7 @@ function sprite(slug, status, size) {
   // Espera a una hija: quieta, con un reloj de arena que late despacio.
   if (state === "wait") {
     return box.child(image(frame(slug, "idle", "a")).w(size).h(size))
-      .child(image("mods/twice-nine/sprites/wait.svg").absolute().top(0).right(0).w(m).h(m)
+      .child(image(`${ARTE}/sprites/wait.svg`).absolute().top(0).right(0).w(m).h(m)
         .loop("opacity", { from: 0.45, to: 1, period: 1400, easing: "ease-in-out" }));
   }
   const period = state === "working" ? 640 : state === "blocked" ? 900 : 1100;
@@ -56,7 +56,7 @@ function sprite(slug, status, size) {
     .loop("opacity", { from, to, period, easing: "ease-in-out" });
   // Dormida: nadie la usa. Cabecea despacio y las z suben (dos cuadros cada cosa).
   if (state === "sleep") {
-    const z = (f, from, to) => image(`mods/twice-nine/sprites/zzz-${f}.svg`).absolute().top(0).left(0).w(size).h(size)
+    const z = (f, from, to) => image(`${ARTE}/sprites/zzz-${f}.svg`).absolute().top(0).left(0).w(size).h(size)
       .loop("opacity", { from, to, period: 1300, easing: "ease-in-out" });
     const nod = (f, from, to) => image(frame(slug, "sleep", f)).absolute().top(0).left(0).w(size).h(size)
       .loop("opacity", { from, to, period: 2600, easing: "ease-in-out" });
@@ -66,7 +66,7 @@ function sprite(slug, status, size) {
   return box
     .child(layer("a", 1, 0))
     .child(layer("b", 0, 1))
-    .when(Boolean(mark), (el) => el.child(image(`mods/twice-nine/sprites/${mark}.svg`).absolute().top(0).right(0).w(m).h(m)
+    .when(Boolean(mark), (el) => el.child(image(`${ARTE}/sprites/${mark}.svg`).absolute().top(0).right(0).w(m).h(m)
       .loop("opacity", { from: 0.35, to: 1, period: 800 })));
 }
 
@@ -160,6 +160,7 @@ export default class TwiceNine extends View {
   init(_props, cx) {
     this.size = null;
     this.hovered = false;
+    cx.spawn(async (cx) => { if (await buscarArte()) cx.notify(); });
     if (props()?.escenario) return;
     if (props()?.elegir) {
       const cur = slotsNow()[props().elegir];

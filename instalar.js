@@ -71,6 +71,29 @@ console.log('Mods (junction):');
 fs.mkdirSync(path.join(home, 'mods'), { recursive: true });
 for (const mod of mods) enlazar(path.join(repo, 'mods', mod), path.join(home, 'mods', mod), mod);
 
+// herdr solo dibuja imágenes que estén de verdad dentro de su carpeta: a través del junction no
+// las ve. El arte de cada mod (sus .svg) se copia a herdr-twice/<mod>/ y los mods lo usan desde
+// ahí si existe. Es una copia gestionada por este script: se pone al día sin --forzar.
+// spaces-twice dibuja con las mascotas de twice-nine, así que también se lleva su arte.
+console.log('Arte de los mods (copia en herdr-twice/):');
+const svgs = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+  e.isDirectory() ? svgs(path.join(dir, e.name)) : e.name.endsWith('.svg') ? [path.join(dir, e.name)] : []);
+const conArte = new Set(mods.flatMap((m) => (m === 'spaces-twice' ? [m, 'twice-nine'] : [m])));
+for (const mod of conArte) {
+  const origen = path.join(repo, 'mods', mod);
+  let nuevos = 0, total = 0;
+  for (const f of svgs(origen)) {
+    const destino = path.join(home, 'herdr-twice', mod, path.relative(origen, f));
+    total++;
+    if (fs.existsSync(destino) && igual(f, destino)) continue;
+    fs.mkdirSync(path.dirname(destino), { recursive: true });
+    fs.copyFileSync(f, destino);
+    nuevos++;
+  }
+  if (!total) continue;
+  if (nuevos) hecho(`${mod}: ${nuevos} de ${total} svg`); else ok(`${mod}: ${total} svg`);
+}
+
 for (const [carpeta, titulo] of solo ? [] : [['themes', 'Temas'], ['layouts', 'Layouts']]) {
   console.log(`${titulo} (copia):`);
   fs.mkdirSync(path.join(home, carpeta), { recursive: true });

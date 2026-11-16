@@ -10,7 +10,7 @@
 
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { agents, spaces, machines, panes, run, openOverlay, exec, hc, theme, shared, setShared, watchFolder, window, layout } from "herdr";
+import { agents, spaces, machines, panes, run, openOverlay, exec, hc, theme, shared, setShared, watchFolder, window, layout, appHome, readTextFile } from "herdr";
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -48,6 +48,9 @@ const SLOTS = "twice.slots", PREFS = "twice.prefs";
 // al asignar el agente que se abra ahí, así la mascota no cambia al llegar el agente.
 const porDefecto = (id) => [...id].reduce((n, c) => n + c.charCodeAt(0), 0) % 9;
 const SLUGS = ["nayeon", "jeongyeon", "momo", "sana", "jihyo", "mina", "dahyun", "chaeyoung", "tzuyu"];
+// Arte de twice-nine: la copia que deja instalar.js en herdr-twice/ (herdr no dibuja imágenes a través
+// del junction del mod); sin ella, la carpeta del mod. Ver twice-nine/members.js.
+let ARTE = "mods/twice-nine";
 const URGENCIA = { blocked: 0, done: 1, working: 2, idle: 3 };
 const limpio = (s) => (s ?? "").replace(/^[^\p{L}\p{N}]+/u, "").trim();
 // El bloque de este mod en el layout y el máximo de filas antes de hacer scroll.
@@ -66,6 +69,11 @@ export function tone(t, status) {
 
 export default class Spaces extends View {
   init(_props, cx) {
+    cx.spawn(async (cx) => {
+      if (await readTextFile(`${appHome()}/herdr-twice/twice-nine/sprites/escena.svg`).catch(() => null) == null) return;
+      ARTE = "herdr-twice/twice-nine";
+      cx.notify();
+    });
     this.git = {}; // where() -> { name, branch, ahead, behind, repo, linked }, null: not a repo
     this.checked = {}; // where() -> when it was last looked at
     this.unsure = new Set(); // where()s git couldn't answer for (a machine away)
@@ -496,13 +504,13 @@ export default class Spaces extends View {
       // Como en twice-nine: en espera y no es el panel que miras (space activo) → dormida.
       const mirando = a.focused && spaces().some((s) => s.active && s.id === a.space);
       const pose = a.status === "idle" && !mirando ? "sleep" : a.status;
-      return image(`mods/twice-nine/sprites/${SLUGS[slot % SLUGS.length]}-${pose}-a.svg`).w(18).h(18).flex_none();
+      return image(`${ARTE}/sprites/${SLUGS[slot % SLUGS.length]}-${pose}-a.svg`).w(18).h(18).flex_none();
     }
     if (!a) {
       // Espacio sin agente: ya tiene su mascota (la elegida para el espacio o la de por defecto), dormida.
       const fav = (shared(PREFS) ?? {})[w.id];
       const i = Number.isInteger(fav) && fav >= 0 ? fav : porDefecto(w.id);
-      return image(`mods/twice-nine/sprites/${SLUGS[i % SLUGS.length]}-sleep-a.svg`).w(18).h(18).flex_none();
+      return image(`${ARTE}/sprites/${SLUGS[i % SLUGS.length]}-sleep-a.svg`).w(18).h(18).flex_none();
     }
     const icon = a?.program?.icon;
     if (icon) return a.program.tint ? svg(icon).size(16).flex_none().text_color(theme().dim) : image(icon).w(16).h(16).flex_none();

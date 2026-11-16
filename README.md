@@ -50,8 +50,11 @@ what's missing and warns (without overwriting) when something differs; `--forzar
 - `--codex` adds the hooks to `~/.codex/hooks.json` and a **Codex (TWICE)** entry to the `+` menu. Codex doesn't run new
   hooks until you review them: open it, type `/hooks` and accept them.
 
-Restart herdr to load the pixel font. To update: `git pull`, then `node instalar.js` again (themes and
-layout are copies).
+The mods' art (their `.svg` files) is copied to `~/.config/herdr-app/herdr-twice/`: herdr only draws images that
+really live in its folder and doesn't see them through the mod's link.
+
+Restart herdr to load the pixel font. To update: `git pull`, then `node instalar.js` again (themes,
+layout and art are copies).
 
 ## Just one mod
 

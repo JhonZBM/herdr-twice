@@ -10,7 +10,7 @@
 import { div, image } from "gpui-kit";
 import { h_flex } from "gpui-base";
 import { theme, run } from "herdr";
-import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL } from "./members.js";
+import { MEMBERS, APRICOT, MAGENTA, FONT, LABEL, ARTE } from "./members.js";
 import { equipo, esperaA, enOrden, repartirCoros } from "./relaciones.js";
 
 // La escena tiene tamaño fijo, el del dibujo; si el panel es más ancho, se centra.
@@ -114,9 +114,9 @@ export function escenario(k) {
   const letrero = sobretitulos();
   return h_flex().id("escenario").size_full().justify_center().bg(TINTA).overflow_hidden()
     .child(div().relative().flex_none().w(ANCHO).h(ALTO).overflow_hidden()
-      .child(image("mods/twice-nine/sprites/escena.svg").absolute().top(0).left(0).w(ANCHO).h(ALTO))
+      .child(image(`${ARTE}/sprites/escena.svg`).absolute().top(0).left(0).w(ANCHO).h(ALTO))
       // El único foco de color: sobre quien te necesita. Sin nadie al micrófono, no hay foco.
-      .when(Boolean(foco), (el) => el.child(image("mods/twice-nine/sprites/foco.svg").absolute().top(118).left(foco.x + GRANDE / 2 - 60).w(120).h(168)
+      .when(Boolean(foco), (el) => el.child(image(`${ARTE}/sprites/foco.svg`).absolute().top(118).left(foco.x + GRANDE / 2 - 60).w(120).h(168)
         .loop("opacity", { from: 0.55, to: 1, period: 1400, easing: "ease-in-out" })))
       .children(libres.map((i) => div().id(`butaca-${i}`).absolute().left(butaca(i)).top(300).opacity(0.6)
         .tooltip(`${MEMBERS[i].name} · libre`).child(k.sprite(MEMBERS[i].slug, "sleep", MINI))))

@@ -15,10 +15,13 @@
 
 import { View, div, image, svg } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { exec, appHome, run, theme, layout, notify, openOverlay, closeOverlay, nextCommand, props } from "herdr";
+import { exec, appHome, readTextFile, run, theme, layout, notify, openOverlay, closeOverlay, nextCommand, props } from "herdr";
 import * as fs from "fs/promises";
 
 const CARPETA = "galeria";
+// Icono del mod: la copia que deja instalar.js en herdr-twice/galeria/ (herdr no dibuja imágenes a
+// través del junction del mod); sin ella, la carpeta del mod.
+let ICONO = "mods/galeria/galeria.svg";
 const DIR = `${appHome()}\\${CARPETA}`.replace(/\//g, "\\");
 const NOMBRE = /^imagen(\d+)\.(png|jpe?g|gif|webp|bmp)$/i;
 // Copias para mostrar, con nombre único (<n>-<sello>.<ext>): herdr guarda las
@@ -58,6 +61,11 @@ function buscar(nodo, id) {
 
 export default class Galeria extends View {
   init(_props, cx) {
+    cx.spawn(async (cx) => {
+      if (await readTextFile(`${appHome()}/herdr-twice/galeria/galeria.svg`).catch(() => null) == null) return;
+      ICONO = "herdr-twice/galeria/galeria.svg";
+      cx.notify();
+    });
     this.imagenes = [];
     this.ocupado = false;
     this.leer(cx);
@@ -282,7 +290,7 @@ export default class Galeria extends View {
         .hover((s) => s.opacity(0.88)).on_click(accion).child(texto);
 
     const cabecera = h_flex().h(40).px(10).gap(6).items_center().flex_none()
-      .child(svg("mods/galeria/galeria.svg").size(14).text_color(t.muted))
+      .child(svg(ICONO).size(14).text_color(t.muted))
       .child(div().flex_1().text_size(13).font_semibold().text_color(t.foreground).child("Galería"))
       .child(boton("pegar", this.ocupado ? "…" : "Pegar", (_e, cx) => this.pegar(cx), true))
       .when(this.imagenes.length > 0, (el) => el.child(boton("limpiar", "Limpiar", () => this.pedirLimpiar(), false)));

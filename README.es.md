@@ -50,8 +50,11 @@ pisar) si algo es distinto; `--forzar` lo pisa.
 - `--codex` añade los hooks a `~/.codex/hooks.json` y una entrada **Codex (TWICE)** al menú `+`. Codex no ejecuta hooks
   nuevos hasta que los revisas: ábrelo, escribe `/hooks` y acéptalos.
 
-Reinicia herdr para cargar la fuente pixel. Para actualizar: `git pull` y otra vez `node instalar.js` (temas
-y layout son copias).
+El arte de los mods (sus `.svg`) se copia a `~/.config/herdr-app/herdr-twice/`: herdr solo dibuja imágenes que estén
+de verdad en su carpeta y no las ve a través del enlace del mod.
+
+Reinicia herdr para cargar la fuente pixel. Para actualizar: `git pull` y otra vez `node instalar.js` (temas,
+layout y arte son copias).
 
 ## Solo un mod
 
