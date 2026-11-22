@@ -119,6 +119,7 @@ Opus 5.5  ✦ medio    ▸ repo    main  ·  3 cambios    ⇡ 1    ▰▰▰▰�
   recorre todos los estados y los cierra. Cierra antes tus sesiones si no quieres que salgan en la grabación.
 - Para ver un cambio en un mod: `herdr-app do layout.switch --name main` y luego `--name twice`.
 - Para construirlo desde cero: [RECIPE.md](RECIPE.md).
+- Redibujar una mascota o añadir una pose: `node arte/sprites.js arte/mascotas-twice.js --out mods/twice-nine/sprites --hojas <carpeta temporal>` regenera todos los sprites y sus hojas de contacto (ver RECIPE.md).
 
 ## Principio: ligero
 

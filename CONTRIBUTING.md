@@ -4,7 +4,7 @@ Thanks for looking. Issues and PRs are welcome, in English or Spanish.
 
 ## What fits
 
-- A new pose, member, theme or mod (the method is in [RECIPE.md](RECIPE.md)).
+- A new pose, member, theme or mod (the method is in [RECIPE.md](RECIPE.md)). Sprites are generated: edit `arte/mascotas-twice.js` and run `arte/sprites.js` instead of editing the SVGs.
 - Support for another agent CLI, following `agentes/` (Cursor and Codex are the examples).
 - Fixes for macOS or Linux: this was built and tested on Windows only, so reports there are the most useful.
 

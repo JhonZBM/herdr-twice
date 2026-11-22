@@ -116,6 +116,7 @@ Icons, colors, thresholds and spacing live in `statusline/iconos.json` (no code 
   every status and closes them. Close your own sessions first if you don't want them in the recording.
 - To see a change made to a mod: `herdr-app do layout.switch --name main`, then `--name twice`.
 - Rebuild it from scratch: [RECIPE.md](RECIPE.md).
+- Redraw or add a mascot pose: `node arte/sprites.js arte/mascotas-twice.js --out mods/twice-nine/sprites --hojas <temp folder>` regenerates every sprite and its contact sheets (see RECIPE.md).
 
 ## Principle: lightweight
 

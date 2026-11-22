@@ -90,6 +90,34 @@ Colors: apricot `#fcc89b`, magenta `#ff5fa2`, one color per member. Font: Silksc
 - Keys: each mod's `keys.json` (`mods/<mod>/keys.json`), merged into the global section. Also remove `"ctrl-shift-v": "terminal.paste"` from the
   `terminal` section, or that key keeps pasting text instead of the screenshot.
 
+## Drawing or touching up the sprites
+
+`arte/` holds the tool that makes every sprite in `mods/twice-nine/sprites/` (Node only, no dependencies):
+`arte/sprites.js` is the generator and `arte/mascotas-twice.js` is the data of the nine mascots. Running it
+rewrites the 94 SVGs byte for byte, so you can change a mascot at the source and regenerate instead of editing
+rectangles by hand.
+
+- Each mascot is drawn once, in pieces (head, body, arms, tail…), with `parte([row, col, "letters"], …)`: each
+  letter paints a pixel to the right, ` ` skips and `.` erases. The poses come from moving those pieces, so every
+  pose is the same mascot. Paint order: `detras → cuerpo → pies → cabezaDetras → cabeza → cabezaDelante → cara → brazos`.
+- Canvas 24×24 logical pixels, transparent. Chibi proportions (head 14 wide down to row 14, body rows 15–21, eyes
+  2×2 on rows 11–12), a 1 px dark outline on every piece, a palette of 6 per mascot (outline, cream and blush
+  shared, plus light / base / shadow of her color, light from the top left) and one trait that tells her apart by
+  silhouette alone: at 24 px nothing else reads.
+- Two frames (`a`, `b`) per pose: `idle`, `working`, `blocked`, `done`, `sleep`. The marks (`bang`, `sparkle`,
+  `zzz-a`/`zzz-b`) are loose SVGs the mod overlays. `wait.svg`, `escena.svg` and `foco.svg` are hand-made.
+
+```
+node arte/sprites.js arte/mascotas-twice.js --out mods/twice-nine/sprites --hojas <temp folder>
+node arte/sprites.js extraer mods/twice-nine/sprites/mina-idle-a.svg     # an SVG back to a text grid
+```
+
+`--hojas` also writes contact sheets (`hoja-oscura.png`, `hoja-clara.png` at 8×, `hoja-real.png` at 1× and 2×): look at
+them before installing. Does each mascot read without its label? Do two look alike? Are the eyes aligned? Does
+anything vanish on the light background? The generator only writes its own files and deletes nothing. For another
+cast, copy `mascotas-twice.js` to `mascotas-<theme>.js`, change the palettes and pieces, and point `--out` at the
+new mod; after changing a sprite run `node instalar.js` again, because herdr draws the copy.
+
 ## Watch out
 
 - The layout names its themes: copy `themes/*.json` too, or herdr rejects the whole layout
