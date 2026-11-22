@@ -90,7 +90,7 @@
       },
       "min": 44,
       "max": 480,
-      "background": "chrome",
+      "background": { "gradient": ["#ff5fa200", "#ff5fa218"], "angle": 180 },
       "resizable": false
     },
     {

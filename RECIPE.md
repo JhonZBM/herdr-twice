@@ -12,7 +12,8 @@ Apricot and neon magenta, with a pixel font.
 
 Left to right:
 
-- **Sidebar, 268 px.** `workspace-chrome` brand (46 px) on top. Below it, two lists that split the height:
+- **Sidebar, 268 px.** Its background is a very soft pink fade (a gradient with alpha, `#ff5fa200` to `#ff5fa218`, angle 180),
+  so it takes the colour of each theme underneath. `workspace-chrome` brand (46 px) on top. Below it, two lists that split the height:
   - **Spaces** (`spaces-twice`): one row per space. The avatar is that space's agent mascot (a still
     frame of its pose); with no mascot, the program's icon (Claude, Codex…); with no agent, the first
     letter on a colored tile. The name drops a leading `✻ ` and shows in full in the tooltip. The block
