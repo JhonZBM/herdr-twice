@@ -8,9 +8,9 @@ but it works in any layout.
 
 ## What you see
 
-A panel (260 px in twice) titled "Galería" with **Pegar** (paste) and **Limpiar** (clear) buttons and a
-column of thumbnails, each labelled `@imagenN` with an "@ insertar" button. Empty, it explains how to add
-images.
+A panel (260 px wide in twice, it takes the height the stage leaves) titled "Galería" with **Pegar** (paste) and **Limpiar** (clear) buttons and a
+column of thumbnails, each labelled `@imagenN` with an "@ insertar" button. Empty, it shows a sleeping mascot (the
+`twice-nine` art, if installed; text only without it) and how to add images.
 
 ## How it behaves
 
@@ -33,7 +33,7 @@ images.
 
 ## Add it to a layout
 
-- A block with id `galeria`: `{ "id": "galeria", "type": "block", "size": { "px": 260 }, "content": { "mod": "galeria" } }`
+- A block with id `galeria`: `{ "id": "galeria", "type": "block", "size": { "weight": 1 }, "min": 120, "content": { "mod": "galeria" } }`
   (to the right of the tab block in twice).
 - Keys: merge `keys.json` (`ctrl-shift-v`, `alt-g`) and remove `"ctrl-shift-v": "terminal.paste"` from the
   `terminal` section, or that key keeps pasting text.

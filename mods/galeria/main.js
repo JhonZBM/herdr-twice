@@ -23,6 +23,9 @@ const CARPETA = "galeria";
 // través del junction del mod); sin ella, la carpeta del mod.
 let ICONO = "mods/galeria/galeria.svg";
 const DIR = `${appHome()}\\${CARPETA}`.replace(/\//g, "\\");
+// Mascota del estado vacío: el arte de twice-nine, si está su copia (instalar.js); sin ella, solo texto.
+const DUERME = "herdr-twice/twice-nine/sprites";
+let MASCOTA = false;
 const NOMBRE = /^imagen(\d+)\.(png|jpe?g|gif|webp|bmp)$/i;
 // Copias para mostrar, con nombre único (<n>-<sello>.<ext>): herdr guarda las
 // imágenes en caché por ruta, y al reutilizar un número (tras Limpiar) la
@@ -62,6 +65,7 @@ function buscar(nodo, id) {
 export default class Galeria extends View {
   init(_props, cx) {
     cx.spawn(async (cx) => {
+      if (await readTextFile(`${appHome()}/${DUERME}/mina-sleep-a.svg`).catch(() => null) != null) { MASCOTA = true; cx.notify(); }
       if (await readTextFile(`${appHome()}/herdr-twice/galeria/galeria.svg`).catch(() => null) == null) return;
       ICONO = "herdr-twice/galeria/galeria.svg";
       cx.notify();
@@ -295,9 +299,12 @@ export default class Galeria extends View {
       .child(boton("pegar", this.ocupado ? "…" : "Pegar", (_e, cx) => this.pegar(cx), true))
       .when(this.imagenes.length > 0, (el) => el.child(boton("limpiar", "Limpiar", () => this.pedirLimpiar(), false)));
 
-    const vacia = v_flex().flex_1().items_center().justify_center().gap(6).p(16).text_size(12).text_color(t.dim)
+    const vacia = v_flex().flex_1().items_center().justify_center().gap(4).p(12).text_size(12).text_color(t.foreground)
+      .when(MASCOTA, (el) => el.child(div().relative().size(44).flex_none()
+        .child(image(`${DUERME}/mina-sleep-a.svg`).absolute().top(0).left(0).size(44))
+        .child(image(`${DUERME}/zzz-a.svg`).absolute().top(0).left(0).size(44))))
       .child("Sin imágenes")
-      .child(div().text_color(t.muted).child("Ctrl+Shift+V pega una captura; también puedes soltar archivos aquí"));
+      .child(div().text_color(t.dim).text_center().child("Ctrl+Shift+V pega · o suelta archivos aquí"));
 
     const tarjeta = (img) =>
       v_flex().id(`img-${img.n}`).relative().gap(4).p(6).rounded(8).border_1().border_color(t.border).bg(t.background)
