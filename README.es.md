@@ -2,6 +2,11 @@
 
 [English](README.md)
 
+[![License: MIT](https://img.shields.io/github/license/JhonZBM/herdr-twice?style=flat-square)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/JhonZBM/herdr-twice?style=flat-square)](https://github.com/JhonZBM/herdr-twice/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/JhonZBM/herdr-twice?style=flat-square)](https://github.com/JhonZBM/herdr-twice/commits/main)
+[![Node](https://img.shields.io/badge/node-required-5FA04E?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
+
 Un layout para [herdr](https://herdr.dev) en el que cada agente lleva una mascota pixel de TWICE que muestra
 su estado, más una galería de imágenes para Claude Code y una statusline de Claude Code a juego.
 
@@ -21,7 +26,7 @@ su estado, más una galería de imágenes para Claude Code y una statusline de C
 
 ## Instalar
 
-Requisitos: herdr-app (ábrelo una vez), Node y git.
+Requisitos: herdr-app (ábrelo una vez), Node y git. Hecho y probado en Windows 11 con herdr-app 0.1.16 y Node 24; en macOS y Linux debería funcionar salvo el pegado en la galería (ver Notas), pero no está probado.
 
 **Lo más fácil:** pega esto en un agente dentro de herdr (es la misma línea que da la [galería de herdr](https://herdr.dev/gallery/)):
 
@@ -120,6 +125,10 @@ Code. Ligero también en recursos: nada que sondee, pocos procesos.
   sustituye; si un temporizador es inevitable: periodo ≥ 1 s y un comentario que lo justifique. Cada `exec`/`spawn` es puntual.
 - Referencias orientativas, no métricas a cumplir: repo ~1 MB; SVG de unos KB; PNG ≤ ~100 KB. Reutilizar lo que ya traen Claude Code y herdr antes de crear algo nuevo.
 - Sin rutas absolutas (disco, usuario) en lo versionado.
+
+## Contribuir
+
+Issues y PRs bienvenidos: mira [CONTRIBUTING.md](CONTRIBUTING.md). Los reportes de macOS y Linux son especialmente útiles.
 
 ## Licencia
 

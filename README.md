@@ -2,6 +2,11 @@
 
 [Español](README.es.md)
 
+[![License: MIT](https://img.shields.io/github/license/JhonZBM/herdr-twice?style=flat-square)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/JhonZBM/herdr-twice?style=flat-square)](https://github.com/JhonZBM/herdr-twice/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/JhonZBM/herdr-twice?style=flat-square)](https://github.com/JhonZBM/herdr-twice/commits/main)
+[![Node](https://img.shields.io/badge/node-required-5FA04E?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
+
 A layout for [herdr](https://herdr.dev) where every coding agent gets a pixel TWICE mascot that shows its
 status, plus an image gallery for Claude Code and a matching Claude Code status line.
 
@@ -21,7 +26,7 @@ status, plus an image gallery for Claude Code and a matching Claude Code status 
 
 ## Install
 
-Requirements: herdr-app (open it once), Node and git.
+Requirements: herdr-app (open it once), Node and git. Built and tested on Windows 11 with herdr-app 0.1.16 and Node 24; macOS and Linux should work apart from the gallery paste (see Notes) but are untested.
 
 **Easiest:** paste this into an agent in herdr (it is the same line the [herdr gallery](https://herdr.dev/gallery/) gives):
 
@@ -117,6 +122,10 @@ size and in resources too: no polling, few processes.
   timer is unavoidable: period ≥ 1 s, with a comment saying why. Every `exec`/`spawn` is one-off.
 - Rough guides, not metrics to hit: repo ~1 MB; SVGs a few KB; PNGs ≤ ~100 KB. Reuse what Claude Code and herdr already provide before writing anything new.
 - No absolute paths (drive, user) in what is versioned.
+
+## Contributing
+
+Issues and PRs welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). macOS and Linux reports are especially useful.
 
 ## License
 
