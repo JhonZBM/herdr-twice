@@ -9,7 +9,7 @@ but it works in any layout.
 ## What you see
 
 A panel (260 px wide in twice, it takes the height the stage leaves) titled "Galería" with **Pegar** (paste) and **Limpiar** (clear) buttons and a
-column of thumbnails, each labelled `@imagenN` with an "@ insertar" button. Empty, it shows a sleeping mascot (the
+column of thumbnails, each labelled `@imagenN` with an "@ insertar" button. Empty, it shows a sleeping mascot, a different member each day (the
 `twice-nine` art, if installed; text only without it) and how to add images.
 
 ## How it behaves
