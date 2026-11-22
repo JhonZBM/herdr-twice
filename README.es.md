@@ -1,4 +1,6 @@
-# herdr-twice
+<div align="center">
+
+<h1>herdr-twice</h1>
 
 [English](README.md)
 
@@ -11,6 +13,8 @@ Un layout para [herdr](https://herdr.dev) en el que cada agente lleva una mascot
 su estado, más una galería de imágenes para Claude Code y una statusline de Claude Code a juego.
 
 ![TWICE](preview.png)
+
+</div>
 
 - **twice-nine**: una mascota por agente (trabajando, te necesita, listo, en espera, dormida). Las libres
   duermen en la banca. `Alt+T` elige integrante; la elección se recuerda por espacio.

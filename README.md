@@ -1,4 +1,6 @@
-# herdr-twice
+<div align="center">
+
+<h1>herdr-twice</h1>
 
 [Español](README.es.md)
 
@@ -11,6 +13,8 @@ A layout for [herdr](https://herdr.dev) where every coding agent gets a pixel TW
 status, plus an image gallery for Claude Code and a matching Claude Code status line.
 
 ![TWICE](preview.png)
+
+</div>
 
 - **twice-nine**: one mascot per agent (working, needs you, done, waiting, asleep). Free members sleep on
   the bench. `Alt+T` picks a member; the choice is remembered per space.
