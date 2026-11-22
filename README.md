@@ -16,17 +16,11 @@ status, plus an image gallery for Claude Code and a matching Claude Code status 
 
 </div>
 
-- **twice-nine**: one mascot per agent (working, needs you, done, waiting, asleep). Free members sleep, each over a bar in her color, on
-  the bench. `Alt+T` picks a member; the choice is remembered per space.
-  - A session that launched another one shows "waiting for" her while she works, and the child says who she works with.
-  - Claude Code subagents show up as backing singers on their session's card (`--subagentes`).
-  - **The stage**, a panel under the gallery (`Alt+R`): every status has its spot, and whoever needs you gets the spotlight.
-- **spaces-twice**: the spaces list, with each agent's mascot as avatar.
-- **galeria**: `Ctrl+Shift+V` saves a screenshot as `@imagenN`; write `@imagen3` in Claude Code to use it. A small × on each thumbnail deletes that image.
-- **nombre-agente**: unnamed spaces take their agent's title; `Ctrl+Shift+M` opens Claude in a folder.
-- **statusline**: model, effort, branch, context and usage limits in one line.
-- **Cursor CLI and Codex**: a tiny launcher and hooks so their agents get a mascot too.
-- Themes `apricot-neon` (dark) and `apricot-cream` (light).
+- **A mascot per agent** that shows its status: working, needs you, done, waiting or asleep.
+- **A stage and a bench**: every status has its spot, and whoever needs you gets the spotlight.
+- **An image gallery** for Claude Code: `Ctrl+Shift+V` saves a screenshot, write `@imagen3` to use it.
+- **A matching Claude Code status line**, and the themes `apricot-neon` (dark) and `apricot-cream` (light).
+- Works with **Claude Code, Cursor CLI and Codex**. [Details of each piece](#what-each-piece-does).
 
 ## Install
 
@@ -98,6 +92,20 @@ Opus 5.5  ✦ medio    ▸ repo    main  ·  3 cambios    ⇡ 1    ▰▰▰▰�
 ```
 
 Icons, colors, thresholds and spacing live in `statusline/iconos.json` (no code changes needed). The labels ("medio", "cambios"…) are Spanish by default and are plain text there, so you can translate them.
+
+## What each piece does
+
+- **twice-nine**: one mascot per agent (working, needs you, done, waiting, asleep). Free members sleep, each over a bar in her color, on
+  the bench. `Alt+T` picks a member; the choice is remembered per space.
+  - A session that launched another one shows "waiting for" her while she works, and the child says who she works with.
+  - Claude Code subagents show up as backing singers on their session's card (`--subagentes`).
+  - **The stage**, a panel under the gallery (`Alt+R`): every status has its spot, and whoever needs you gets the spotlight.
+- **spaces-twice**: the spaces list, with each agent's mascot as avatar.
+- **galeria**: `Ctrl+Shift+V` saves a screenshot as `@imagenN`; write `@imagen3` in Claude Code to use it. A small × on each thumbnail deletes that image.
+- **nombre-agente**: unnamed spaces take their agent's title; `Ctrl+Shift+M` opens Claude in a folder.
+- **statusline**: model, effort, branch, context and usage limits in one line.
+- **Cursor CLI and Codex**: a tiny launcher and hooks so their agents get a mascot too.
+- Themes `apricot-neon` (dark) and `apricot-cream` (light).
 
 ## Notes
 

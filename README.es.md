@@ -16,17 +16,11 @@ su estado, más una galería de imágenes para Claude Code y una statusline de C
 
 </div>
 
-- **twice-nine**: una mascota por agente (trabajando, te necesita, listo, en espera, dormida). Las libres
-  duermen en la banca, cada una sobre una barra de su color. `Alt+T` elige integrante; la elección se recuerda por espacio.
-  - Una sesión que lanzó a otra dice «esperando a» ella mientras trabaja, y la hija dice con quién trabaja.
-  - Los subagentes de Claude Code salen como coristas en la tarjeta de su sesión (`--subagentes`).
-  - **El escenario**, un panel bajo la galería (`Alt+R`): cada estado tiene su sitio, y quien te necesita se lleva el foco.
-- **spaces-twice**: la lista de espacios, con la mascota de su agente como avatar.
-- **galeria**: `Ctrl+Shift+V` guarda una captura como `@imagenN`; escribe `@imagen3` en Claude Code para usarla. Una pequeña × en cada miniatura borra esa imagen.
-- **nombre-agente**: los espacios sin nombre toman el título de su agente; `Ctrl+Shift+M` abre Claude en una carpeta.
-- **statusline**: modelo, esfuerzo, rama, contexto y límites de uso en una línea.
-- **Cursor CLI y Codex**: un lanzador mínimo y hooks para que sus agentes también tengan mascota.
-- Temas `apricot-neon` (oscuro) y `apricot-cream` (claro).
+- **Una mascota por agente** que muestra su estado: trabajando, te necesita, listo, en espera o dormida.
+- **Un escenario y una banca**: cada estado tiene su sitio, y quien te necesita se lleva el foco.
+- **Una galería de imágenes** para Claude Code: `Ctrl+Shift+V` guarda una captura, escribe `@imagen3` para usarla.
+- **Una statusline de Claude Code a juego**, y los temas `apricot-neon` (oscuro) y `apricot-cream` (claro).
+- Funciona con **Claude Code, Cursor CLI y Codex**. [Detalle de cada pieza](#qué-hace-cada-pieza).
 
 ## Instalar
 
@@ -101,6 +95,20 @@ Opus 5.5  ✦ medio    ▸ repo    main  ·  3 cambios    ⇡ 1    ▰▰▰▰�
 - Contexto: verde < 50 %, amarillo < 80 %, rojo después.
 - Límites de uso (`◷`): 5 h y semanal, cada uno con sus umbrales y `↻` hasta el reinicio.
 - Iconos, colores, umbrales y espaciado en `statusline/iconos.json` (sin tocar código).
+
+## Qué hace cada pieza
+
+- **twice-nine**: una mascota por agente (trabajando, te necesita, listo, en espera, dormida). Las libres
+  duermen en la banca, cada una sobre una barra de su color. `Alt+T` elige integrante; la elección se recuerda por espacio.
+  - Una sesión que lanzó a otra dice «esperando a» ella mientras trabaja, y la hija dice con quién trabaja.
+  - Los subagentes de Claude Code salen como coristas en la tarjeta de su sesión (`--subagentes`).
+  - **El escenario**, un panel bajo la galería (`Alt+R`): cada estado tiene su sitio, y quien te necesita se lleva el foco.
+- **spaces-twice**: la lista de espacios, con la mascota de su agente como avatar.
+- **galeria**: `Ctrl+Shift+V` guarda una captura como `@imagenN`; escribe `@imagen3` en Claude Code para usarla. Una pequeña × en cada miniatura borra esa imagen.
+- **nombre-agente**: los espacios sin nombre toman el título de su agente; `Ctrl+Shift+M` abre Claude en una carpeta.
+- **statusline**: modelo, esfuerzo, rama, contexto y límites de uso en una línea.
+- **Cursor CLI y Codex**: un lanzador mínimo y hooks para que sus agentes también tengan mascota.
+- Temas `apricot-neon` (oscuro) y `apricot-cream` (claro).
 
 ## Notas
 
