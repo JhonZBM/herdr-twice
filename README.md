@@ -16,7 +16,7 @@ status, plus an image gallery for Claude Code and a matching Claude Code status 
 
 </div>
 
-- **twice-nine**: one mascot per agent (working, needs you, done, waiting, asleep). Free members sleep on
+- **twice-nine**: one mascot per agent (working, needs you, done, waiting, asleep). Free members sleep, each over a bar in her color, on
   the bench. `Alt+T` picks a member; the choice is remembered per space.
   - A session that launched another one shows "waiting for" her while she works, and the child says who she works with.
   - Claude Code subagents show up as backing singers on their session's card (`--subagentes`).

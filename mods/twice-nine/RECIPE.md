@@ -10,7 +10,7 @@ agent's mini mascot. Part of the [twice](../../RECIPE.md) layout, but it works i
 
 - **Sidebar block** (fills its space; ~268 px wide in twice): a "TWICE n/9" title with an apricot→magenta
   line, then two columns of cards (mascot 48 px, member name in Silkscreen, status word, "program · tab"),
-  each with a top stripe in the member's color. Below, the bench: the free members, small and asleep.
+  each with a top stripe in the member's color. Below, the bench: the free members, asleep, 30 px, each over a 2 px bar in her color (tooltip with her name).
 - **Pane header**: the mini mascot (14 px) and the member name next to the program and folder.
 - **Picker**: a dialog with the nine members, each card saying if she's free or which space has her.
 - **Stage** (optional block, 260×330): a drawn theatre with surtitles, wings, dressing room, boards,

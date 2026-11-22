@@ -17,7 +17,7 @@ su estado, más una galería de imágenes para Claude Code y una statusline de C
 </div>
 
 - **twice-nine**: una mascota por agente (trabajando, te necesita, listo, en espera, dormida). Las libres
-  duermen en la banca. `Alt+T` elige integrante; la elección se recuerda por espacio.
+  duermen en la banca, cada una sobre una barra de su color. `Alt+T` elige integrante; la elección se recuerda por espacio.
   - Una sesión que lanzó a otra dice «esperando a» ella mientras trabaja, y la hija dice con quién trabaja.
   - Los subagentes de Claude Code salen como coristas en la tarjeta de su sesión (`--subagentes`).
   - **El escenario**, un panel bajo la galería (`Alt+R`): cada estado tiene su sitio, y quien te necesita se lleva el foco.

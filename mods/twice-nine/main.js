@@ -350,9 +350,12 @@ export default class TwiceNine extends View {
       .child(v_flex().flex_1().min_h(0).px(8).pt(8).pb(8).gap(8).overflow_y_scrollbar()
         .when(!big, (el) => el.child(h_flex().flex_wrap().gap(6).children(active.map((s) => this.card(t, s, bySlot.get(s), w, all, coros.get(s))))))
         .when(big, (el) => el.child(div().px(4).text_size(11.5).text_color(t.dim).child("Abre un agente y una de las nueve lo acompaña.")))
+        // Banca: sprite más grande y una barra de 2 px con el color de cada integrante
+        // para distinguirlas de un vistazo (siete de 30 px caben en los 268 px de la barra).
         .when(bench.length > 0, (el) => el.child(h_flex().flex_wrap().gap(big ? 8 : 5).px(2)
-          .children(bench.map((i) => div().id(`bench-${i}`).flex_none().opacity(big ? 0.9 : 0.7).tooltip(`${MEMBERS[i].name} · dormida`)
-            .child(sprite(MEMBERS[i].slug, "sleep", big ? 36 : 24)))))));
+          .children(bench.map((i) => v_flex().id(`bench-${i}`).flex_none().gap(2).opacity(big ? 0.9 : 0.75).tooltip(`${MEMBERS[i].name} · dormida`)
+            .child(sprite(MEMBERS[i].slug, "sleep", big ? 36 : 30))
+            .child(div().w_full().h(2).rounded(1).bg(MEMBERS[i].color)))))));
   }
 
   // Cabecera de panel: como la de Herdr, con la mascota del agente.
