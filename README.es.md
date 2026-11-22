@@ -9,7 +9,7 @@
 [![Last commit](https://img.shields.io/github/last-commit/JhonZBM/herdr-twice?style=flat-square)](https://github.com/JhonZBM/herdr-twice/commits/main)
 [![Node](https://img.shields.io/badge/node-required-5FA04E?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
 
-Un layout para [herdr](https://herdr.dev) en el que cada agente lleva una mascota pixel de TWICE que muestra
+Un layout para [herdr](https://herdr.dev), un espacio de trabajo de terminal para agentes de IA, en el que cada agente lleva una mascota pixel de TWICE que muestra
 su estado, más una galería de imágenes para Claude Code y una statusline de Claude Code a juego.
 
 ![TWICE](preview.png)
@@ -66,13 +66,15 @@ de verdad en su carpeta y no las ve a través del enlace del mod.
 Reinicia herdr para cargar la fuente pixel. Para actualizar: `git pull` y otra vez `node instalar.js` (temas,
 layout y arte son copias).
 
+Para volver atrás: cambia de layout con `Ctrl+Shift+L`. Tus propios layouts no se pisan sin `--forzar`.
+
 ## Solo un mod
 
 Cada mod funciona por su cuenta y lleva en su carpeta su `RECIPE.md`, su `keys.json` y su captura:
 [twice-nine](mods/twice-nine), [galeria](mods/galeria), [spaces-twice](mods/spaces-twice),
 [nombre-agente](mods/nombre-agente).
 
-- Pídeselo a tu agente en herdr: *«añade este mod de herdr: https://github.com/JhonZBM/herdr-twice/tree/main/mods/galeria»*.
+- Pídeselo a tu agente en herdr: *«añade este mod de herdr: `https://github.com/JhonZBM/herdr-twice/tree/main/mods/galeria`»*.
 - O con el script: `node instalar.js --solo galeria` (varios: `--solo galeria,twice-nine`). Instala esos mods y
   sus atajos sin tocar tu layout ni tus temas; luego pídele a tu agente que los coloque según su RECIPE.md.
 

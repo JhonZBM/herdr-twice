@@ -1,0 +1,32 @@
+name: Bug / Error
+description: Algo no funciona como debería (something is not working)
+labels: [bug]
+body:
+  - type: textarea
+    id: que
+    attributes:
+      label: Qué pasa / What happens
+      description: Qué esperabas y qué ocurre en realidad. Si puedes, una captura.
+    validations:
+      required: true
+  - type: textarea
+    id: como
+    attributes:
+      label: Cómo reproducirlo / Steps to reproduce
+  - type: input
+    id: sistema
+    attributes:
+      label: Sistema operativo / OS
+      placeholder: Windows 11, macOS 15, Ubuntu 24.04…
+    validations:
+      required: true
+  - type: input
+    id: versiones
+    attributes:
+      label: Versión de herdr-app y de Node / herdr-app and Node versions
+      placeholder: herdr-app 0.1.16, Node 24
+  - type: dropdown
+    id: agente
+    attributes:
+      label: Agente / Agent
+      options: [Claude Code, Cursor CLI, Codex, Otro / Other]

@@ -1,0 +1,23 @@
+name: Probado en mi sistema / Tested on my system
+description: Cuéntanos si funciona en macOS o Linux (tell us if it works there)
+labels: [compatibilidad]
+body:
+  - type: input
+    id: sistema
+    attributes:
+      label: Sistema operativo / OS
+      placeholder: macOS 15, Ubuntu 24.04…
+    validations:
+      required: true
+  - type: input
+    id: versiones
+    attributes:
+      label: herdr-app y Node
+      placeholder: herdr-app 0.1.16, Node 24
+  - type: textarea
+    id: resultado
+    attributes:
+      label: Qué funcionó y qué no / What worked and what did not
+      description: Mascotas, galería, statusline, instalador…
+    validations:
+      required: true

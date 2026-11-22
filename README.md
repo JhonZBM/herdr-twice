@@ -9,7 +9,7 @@
 [![Last commit](https://img.shields.io/github/last-commit/JhonZBM/herdr-twice?style=flat-square)](https://github.com/JhonZBM/herdr-twice/commits/main)
 [![Node](https://img.shields.io/badge/node-required-5FA04E?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org)
 
-A layout for [herdr](https://herdr.dev) where every coding agent gets a pixel TWICE mascot that shows its
+A layout for [herdr](https://herdr.dev), a terminal workspace for AI coding agents, where every coding agent gets a pixel TWICE mascot that shows its
 status, plus an image gallery for Claude Code and a matching Claude Code status line.
 
 ![TWICE](preview.png)
@@ -66,6 +66,8 @@ really live in its folder and doesn't see them through the mod's link.
 Restart herdr to load the pixel font. To update: `git pull`, then `node instalar.js` again (themes,
 layout and art are copies).
 
+To go back: switch layout with `Ctrl+Shift+L`. Your own layouts are never overwritten without `--forzar`.
+
 ## Just one mod
 
 Each mod works on its own and has its own `RECIPE.md`, `keys.json` and preview in its folder:
@@ -95,7 +97,7 @@ Each mod works on its own and has its own `RECIPE.md`, `keys.json` and preview i
 Opus 5.5  ✦ medio    ▸ repo    main  ·  3 cambios    ⇡ 1    ▰▰▰▰▱▱▱▱▱▱  42%    ◷ 5h 30%  7d 65% ↻ 2d4h
 ```
 
-Icons, colors, thresholds and spacing live in `statusline/iconos.json` (no code changes needed).
+Icons, colors, thresholds and spacing live in `statusline/iconos.json` (no code changes needed). The labels ("medio", "cambios"…) are Spanish by default and are plain text there, so you can translate them.
 
 ## Notes
 
